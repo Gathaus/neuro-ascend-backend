@@ -1,11 +1,12 @@
 using System.Reflection;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Neuro.Domain.Entities;
 
 namespace Neuro.Infrastructure.Ef.Contexts;
 
 
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext
     {
         #region Constructors
 

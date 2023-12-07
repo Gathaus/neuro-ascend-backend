@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Neuro.Application.Base;
 using Neuro.Application.Base.Service;
@@ -38,6 +40,7 @@ public class WeatherForecastController : BaseController
     }
     
     [HttpGet("GetWeatherForecastForCustomResponse")]
+    [Authorize]
     public async Task<IActionResult> GetWeatherForecastForCustomResponse()
     {
         var response = await _baseService.InvokeDynamicAsync<GetWeatherForecastForCustomResponse,

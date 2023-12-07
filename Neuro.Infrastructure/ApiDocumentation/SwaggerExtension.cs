@@ -21,14 +21,14 @@ public static class SwaggerExtension
             });
             c.SwaggerDoc("v1", new OpenApiInfo {Title = "Poi Api", Version = "v1"});
 
-            c.SwaggerDoc("experimental",
-                new OpenApiInfo
-                {
-                    Title = "Experimental Api",
-                    Description = "These endpoints are experimental please use versioned endpoints",
-                    Version = "experimental"
-                });
-            
+            // c.SwaggerDoc("experimental",
+            //     new OpenApiInfo
+            //     {
+            //         Title = "Experimental Api",
+            //         Description = "These endpoints are experimental please use versioned endpoints",
+            //         Version = "experimental"
+            //     });
+            //
             var securitySchema = new OpenApiSecurityScheme
             {
                 Description = "Geçerli bir Token giriniz.",
