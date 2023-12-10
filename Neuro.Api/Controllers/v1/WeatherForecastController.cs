@@ -81,4 +81,12 @@ public class WeatherForecastController : BaseController
         //     return Ok(data);
         // }
     }
+    
+    [HttpPost("datatest")]
+    public async Task<IActionResult> datatest()
+    {
+            var user = await _unitOfWork.Repository<User>().FindBy(x => x.Id == 1).FirstOrDefaultAsync();
+
+            return Ok(user);
+    }
 }
