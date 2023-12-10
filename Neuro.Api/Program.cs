@@ -21,7 +21,11 @@ var configuration = builder.Configuration;
 
 // builder.Host.UseSerilog();
 
-var nlogConfig = configuration.GetSection("LogDB");
+var certificatePath = Path.Combine(AppContext.BaseDirectory, "Configurations", "ca-certificate.crt");
+var postgreServerConnectionString = configuration.GetConnectionString("PostgreServer") + $"RootCertificate={certificatePath};";
+var logDBConnectionString = configuration.GetConnectionString("LogDB") + $"RootCertificate={certificatePath};";
+
+var nlogConfig = configuration.GetSection("NLog");
 builder.Services.AddRemLogger(nlogConfig);
 
 
@@ -75,8 +79,8 @@ builder.Services.ConfigureMassTransit(rabbitMqConfig["Url"]);
 
 builder.Services.AddApplication();
 
-builder.Services.AddInfrastructureEf(configuration.GetConnectionString("PostgreServer"),
-    configuration.GetConnectionString("LogDB"));
+builder.Services.AddInfrastructureEf(postgreServerConnectionString,
+    postgreServerConnectionString);
 builder.Services.AddInfrastructure();
 
 

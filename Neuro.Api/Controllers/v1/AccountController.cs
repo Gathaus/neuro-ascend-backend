@@ -90,6 +90,36 @@ public class AccountController : ControllerBase
         var payload = await GoogleJsonWebSignature.ValidateAsync(model.IdToken);
         if (payload != null && !string.IsNullOrEmpty(payload.Email))
         {
+            // var user = await _unitOfWork.Repository<User>().FindBy(x => x.Email.Equals(payload.Email,
+            //     StringComparison.OrdinalIgnoreCase)).FirstOrDefaultAsync();
+
+
+            return Ok(new UserInfo
+            {
+                Email = payload.Email,
+                Name = payload.Name,
+                // Diğer gerekli bilgiler
+            });
+
+            // var user = await _userManager.FindByNameAsync(payload?.Email ?? "");
+            // if (user != null)
+            // {
+            //     var tokenString = GenerateTokenString(user);
+            //     return Ok(new {IsSuccess = true, Token = tokenString});
+            // }
+        }
+
+        return BadRequest("Invalid Google ID Token.");
+    }
+    
+    
+    
+    [HttpPost("signin-google2")]
+    public async Task<IActionResult> VerifyGoogleToken2([FromBody] GoogleToken model)
+    {
+        var payload = await GoogleJsonWebSignature.ValidateAsync(model.IdToken);
+        if (payload != null && !string.IsNullOrEmpty(payload.Email))
+        {
             var user = await _unitOfWork.Repository<User>().FindBy(x => x.Email.Equals(payload.Email,
                 StringComparison.OrdinalIgnoreCase)).FirstOrDefaultAsync();
 
@@ -105,15 +135,15 @@ public class AccountController : ControllerBase
             // var user = await _userManager.FindByNameAsync(payload?.Email ?? "");
             if (user != null)
             {
-                var tokenString = GenerateTokenString(user);
-                return Ok(new {IsSuccess = true, Token = tokenString});
+                // var tokenString = GenerateTokenString(user);
+                return Ok(new {IsSuccess = true});
             }
         }
 
         return BadRequest("Invalid Google ID Token.");
     }
 
-    [HttpGet("signin-google2")]
+    [HttpGet("signin-google3")]
     public async Task<IActionResult> GoogleResponse(string code)
     {
         // 'code' parametresi Google tarafından gönderilen authorization code'dur.
