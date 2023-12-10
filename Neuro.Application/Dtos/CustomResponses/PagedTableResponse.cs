@@ -1,6 +1,6 @@
 using Neuro.Application.Base.Result;
 
-namespace Neuro.Application.Responses;
+namespace Neuro.Application.Dtos.CustomResponses;
 
 public class TableResponse<TData> : BaseResult
 {

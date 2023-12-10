@@ -17,11 +17,13 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
 // Configure Serilog
-// builder.Services.AddNeuroLogging(configuration.GetConnectionString("SqlServer"));
+// builder.Services.AddNeuroLogging(configuration.GetConnectionString("PostgreServer"));
 
 // builder.Host.UseSerilog();
 
-builder.Services.AddInfrastructureEf(configuration.GetConnectionString("PostgreServer"));
+var nlogConfig = configuration.GetSection("LogDB");
+builder.Services.AddRemLogger(nlogConfig);
+
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     {
@@ -40,12 +42,17 @@ builder.Services.AddAuthentication(options =>
     })
     .AddJwtBearer(options =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+        options.TokenValidationParameters = new TokenValidationParameters()
         {
+            ValidateActor = true,
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            RequireExpirationTime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!)),
-            ValidateIssuer = false,
-            ValidateAudience = false
+            ValidIssuer = builder.Configuration.GetSection("Jwt:Issuer").Value,
+            ValidAudience = builder.Configuration.GetSection("Jwt:Audience").Value,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("Jwt:Key").Value))
+
         };
     });
 
@@ -59,6 +66,8 @@ builder.Services.AddControllers()
 
 builder.Services.AddControllers();
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddCustomCors();
 
 var rabbitMqConfig = configuration.GetSection("RabbitMQ");
@@ -66,6 +75,8 @@ builder.Services.ConfigureMassTransit(rabbitMqConfig["Url"]);
 
 builder.Services.AddApplication();
 
+builder.Services.AddInfrastructureEf(configuration.GetConnectionString("PostgreServer"),
+    configuration.GetConnectionString("LogDB"));
 builder.Services.AddInfrastructure();
 
 
@@ -75,11 +86,12 @@ builder.Services.AddNeuroSwagger();
 
 // builder.Services.AddNeuroAuthentication(builder.Configuration);
 
+builder.Host.UseNeuroLogger();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsStaging() || app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();

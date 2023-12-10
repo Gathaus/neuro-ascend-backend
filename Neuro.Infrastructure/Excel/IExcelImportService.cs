@@ -1,6 +1,4 @@
-using Neuro.Infrastructure.Excel;
-
-namespace POI.Application.Base.Excel;
+namespace Neuro.Infrastructure.Excel;
 
 public interface IImportService<T> where T : class, new()
 {

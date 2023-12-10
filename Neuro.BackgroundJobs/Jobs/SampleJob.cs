@@ -1,6 +1,6 @@
 using Hangfire;
-using Neuro.Application.Attributes;
 using Neuro.Application.Base.BackgroundJobs;
+using Neuro.BackgroundJobs.Attributes;
 using Serilog;
 
 namespace Neuro.BackgroundJobs.Jobs;

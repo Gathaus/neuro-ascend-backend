@@ -9,17 +9,21 @@ namespace Neuro.Infrastructure.Ef;
 
 public static class DependencyInjection
 {
-    public static void AddInfrastructureEf(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddInfrastructureEf(this IServiceCollection services, string connectionString,
+        string logConnectionStr)
     {
-        
-        if (string.IsNullOrEmpty(connectionString)) 
-            return;
+        if (string.IsNullOrEmpty(connectionString))
+            throw new ArgumentNullException(nameof(connectionString));
 
         services.AddScoped(typeof(IRepository<,>), typeof(BaseRepository<,>));
         services.AddScoped<IUnitOfWork, UnitOfWork.UnitOfWork>();
 
-        
+
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(connectionString));
+
+        services.AddDbContext<NeuroLogDbContext>(options => options.UseNpgsql(logConnectionStr));
+        
+        return services;
     }
 }

@@ -1,6 +1,6 @@
 using Neuro.Application.Base.Service;
 using Neuro.Application.Dtos;
-using Neuro.Application.Responses;
+using Neuro.Application.Dtos.CustomResponses;
 
 namespace Neuro.Application.Services.WeatherForecast;
 

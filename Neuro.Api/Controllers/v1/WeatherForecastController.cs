@@ -1,12 +1,15 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Neuro.Application.Base;
+using Microsoft.EntityFrameworkCore;
 using Neuro.Application.Base.Service;
 using Neuro.Application.Dtos;
-using Neuro.Application.Responses;
-using Neuro.Application.Services;
+using Neuro.Application.Dtos.CustomResponses;
 using Neuro.Application.Services.WeatherForecast;
+using Neuro.Domain.Entities;
+using Neuro.Domain.UnitOfWork;
+using Neuro.Infrastructure.Ef.Contexts;
+
 
 namespace Neuro.Api.Controllers.v1;
 
@@ -18,11 +21,13 @@ public class WeatherForecastController : BaseController
     #region constructor
 
     private readonly BaseBusinessService _baseService;
+    private readonly IUnitOfWork _unitOfWork;
 
 
-    public WeatherForecastController(BaseBusinessService baseService)
+    public WeatherForecastController(BaseBusinessService baseService, IUnitOfWork unitOfWork)
     {
         _baseService = baseService;
+        _unitOfWork = unitOfWork;
     }
 
     #endregion
@@ -50,5 +55,30 @@ public class WeatherForecastController : BaseController
             return BadRequest(response);
         
         return Ok(response);
+    }
+    
+    [HttpGet("GetWeatherForecastForException")]
+    public async Task<IActionResult> GetWeatherForecastForException()
+    {
+        throw new Exception("Test Exception");
+        var response = await _baseService.InvokeDynamicAsync<GetWeatherForecastForCustomResponse,
+            GetWeatherForecastForCustomResponse.Request, PagedTableResponse<WeatherForecastDto>>(new ());
+        
+        if (!response.IsSuccess)
+            return BadRequest(response);
+        
+        return Ok(response);
+    }
+    
+    [HttpGet("GetWeatherForecastFordata")]
+    public async Task<IActionResult> GetWeatherForecastFordata()
+    {
+        var data = _unitOfWork.Repository<User>().FindBy().ToList();
+        return Ok(data);
+        // using(NeuroLogDbContext context = new NeuroLogDbContext())
+        // {
+        //     var data = await context.AdvertExtraAttributess.ToListAsync();
+        //     return Ok(data);
+        // }
     }
 }

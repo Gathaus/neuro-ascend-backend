@@ -1,8 +1,7 @@
 using Neuro.Application.Base.Result;
 using Neuro.Application.Base.Service;
-using Neuro.Domain.UnitOfWork;
 
-namespace Neuro.Application.Services;
+namespace Neuro.Application.Services.WeatherForecast;
 
 public class UpdateWeatherForecast : IBusinessService<UpdateWeatherForecast.Request, UpdateWeatherForecast.Response>
 {

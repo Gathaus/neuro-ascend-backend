@@ -19,6 +19,8 @@ namespace Neuro.Infrastructure.Ef.Contexts;
         #endregion
 
         #region DbSets
+        
+        public DbSet<User> Users { get; set; }
         #endregion
 
         #region Methods

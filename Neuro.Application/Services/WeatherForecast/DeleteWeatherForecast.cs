@@ -1,7 +1,7 @@
 using Neuro.Application.Base.Result;
 using Neuro.Application.Base.Service;
 
-namespace Neuro.Application.Services;
+namespace Neuro.Application.Services.WeatherForecast;
 
 public class DeleteWeatherForecast : IBusinessService<DeleteWeatherForecast.Request, DeleteWeatherForecast.Response>
 {

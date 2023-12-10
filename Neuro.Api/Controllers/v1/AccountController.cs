@@ -1,12 +1,17 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Neuro.Api.Models;
 using Neuro.Application.Base.Service;
+using Neuro.Domain.Entities;
+using Neuro.Domain.UnitOfWork;
 using Newtonsoft.Json;
 
 namespace Neuro.Api.Controllers.v1;
@@ -18,24 +23,29 @@ public class AccountController : ControllerBase
     private readonly UserManager<IdentityUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IConfiguration _configuration;
+    private readonly IConfiguration _config;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public AccountController(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
+    public AccountController(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager,
+        IConfiguration configuration, IConfiguration config, IUnitOfWork unitOfWork)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _configuration = configuration;
+        _config = config;
+        _unitOfWork = unitOfWork;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUser(RegisterModel model)
     {
-        var user = new IdentityUser { UserName = model.Email, Email = model.Email };
+        var user = new IdentityUser {UserName = model.Email, Email = model.Email};
         var result = await _userManager.CreateAsync(user, model.Password);
 
         if (result.Succeeded)
         {
             await _userManager.AddToRoleAsync(user, "User"); // Default role
-            return Ok(new { Username = user.UserName });
+            return Ok(new {Username = user.UserName});
         }
 
         return BadRequest(result.Errors);
@@ -47,8 +57,8 @@ public class AccountController : ControllerBase
         var user = await _userManager.FindByNameAsync(model.Email);
         if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
         {
-            var tokenString = GenerateJwtToken(user);
-            return Ok(new { Token = tokenString });
+            var tokenString = GenerateTokenString(user);
+            return Ok(new {Token = tokenString});
         }
 
         return Unauthorized();
@@ -68,45 +78,80 @@ public class AccountController : ControllerBase
 
         return BadRequest(result.Errors);
     }
-    
-    [HttpGet("signin-google")]
+
+    public class GoogleToken
+    {
+        public string IdToken { get; set; }
+    }
+
+    [HttpPost("signin-google")]
+    public async Task<IActionResult> VerifyGoogleToken([FromBody] GoogleToken model)
+    {
+        var payload = await GoogleJsonWebSignature.ValidateAsync(model.IdToken);
+        if (payload != null && !string.IsNullOrEmpty(payload.Email))
+        {
+            var user = await _unitOfWork.Repository<User>().FindBy(x => x.Email.Equals(payload.Email,
+                StringComparison.OrdinalIgnoreCase)).FirstOrDefaultAsync();
+
+
+            // Kullanıcı bilgilerini alın
+            // return Ok(new UserInfo
+            // {
+            //     Email = payload.Email,
+            //     Name = payload.Name,
+            //     // Diğer gerekli bilgiler
+            // });
+
+            // var user = await _userManager.FindByNameAsync(payload?.Email ?? "");
+            if (user != null)
+            {
+                var tokenString = GenerateTokenString(user);
+                return Ok(new {IsSuccess = true, Token = tokenString});
+            }
+        }
+
+        return BadRequest("Invalid Google ID Token.");
+    }
+
+    [HttpGet("signin-google2")]
     public async Task<IActionResult> GoogleResponse(string code)
     {
         // 'code' parametresi Google tarafından gönderilen authorization code'dur.
         // Bu code'u kullanarak Google'dan access token ve refresh token alabilirsiniz.
         // Google API'sine istekte bulunacak HttpClient oluşturun
         var httpClient = new HttpClient();
-    
+
         // Token isteği için gerekli verileri hazırlayın
         var requestData = new Dictionary<string, string>
         {
-            { "code", code },
-            { "client_id", _configuration["Google:ClientId"] },
-            { "client_secret", _configuration["Google:ClientSecret"] },
-            { "redirect_uri", "https://neuroascend.azurewebsites.net/signin-google" },
-            { "grant_type", "authorization_code" }
+            {"code", code},
+            {"client_id", _configuration["Google:ClientId"]},
+            {"client_secret", _configuration["Google:ClientSecret"]},
+            {"redirect_uri", "https://neuroascend.azurewebsites.net/signin-google"},
+            {"grant_type", "authorization_code"}
         };
-    
+
         // Google token endpoint'ine istek gönderin
-        var response = await httpClient.PostAsync("https://oauth2.googleapis.com/token", new FormUrlEncodedContent(requestData));
+        var response = await httpClient.PostAsync("https://oauth2.googleapis.com/token",
+            new FormUrlEncodedContent(requestData));
         if (response.IsSuccessStatusCode)
         {
             // Google'dan gelen yanıtı okuyun
             var responseString = await response.Content.ReadAsStringAsync();
             var tokenData = JsonConvert.DeserializeObject<GoogleTokenResponse>(responseString);
-    
+
             // Kullanıcının bilgilerini almak için token'ı kullanın ve sisteminize kaydedin
             // Burada kullanıcıyı sisteminize kaydetme ve kendi JWT'nizi oluşturma işlemlerinizi yapabilirsiniz
-    
+
             // Kullanıcıya sisteminizin token'ını döndürün
-            return Ok(new { Token = "Sizin Oluşturduğunuz JWT Token" });
+            return Ok(new {Token = "Sizin Oluşturduğunuz JWT Token"});
         }
-    
+
         // Bir hata oluşursa kullanıcıya bilgi döndürün
         return BadRequest("Google'dan token alınamadı.");
     }
 
-    
+
     [HttpPost("deleterole")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteRole(string roleName)
@@ -138,6 +183,7 @@ public class AccountController : ControllerBase
 
         return BadRequest(result.Errors);
     }
+
     [HttpPost("userhasrole")]
     [Authorize]
     public async Task<IActionResult> UserHasRole(UserRoleModel model)
@@ -153,6 +199,7 @@ public class AccountController : ControllerBase
 
         return BadRequest($"User {model.UserName} is not in role {model.RoleName}.");
     }
+
     [HttpPost("addclaim")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddClaim(UserClaimModel model)
@@ -190,7 +237,7 @@ public class AccountController : ControllerBase
 
         return BadRequest(result.Errors);
     }
-    
+
     [HttpGet("userdetails")]
     [Authorize]
     public async Task<IActionResult> GetUserDetails(string userName)
@@ -206,10 +253,10 @@ public class AccountController : ControllerBase
             UserName = user.UserName,
             Email = user.Email,
             Roles = roles,
-            Claims = claims.Select(c => new { c.Type, c.Value })
+            Claims = claims.Select(c => new {c.Type, c.Value})
         });
     }
-    
+
     [HttpPost("removerole")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> RemoveRoleFromUser(UserRoleModel model)
@@ -225,6 +272,7 @@ public class AccountController : ControllerBase
 
         return BadRequest(result.Errors);
     }
+
     [HttpPut("updateuser")]
     [Authorize]
     public async Task<IActionResult> UpdateUser(UpdateUserModel model)
@@ -243,7 +291,7 @@ public class AccountController : ControllerBase
 
         return BadRequest(result.Errors);
     }
-    
+
     [HttpPost("resetpassword")]
     public async Task<IActionResult> ResetPassword(ResetPasswordModel model)
     {
@@ -258,7 +306,7 @@ public class AccountController : ControllerBase
 
         return BadRequest(result.Errors);
     }
-    
+
     [HttpPost("adduserclaim")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddUserClaim(UserClaimModel model)
@@ -275,7 +323,7 @@ public class AccountController : ControllerBase
 
         return BadRequest(result.Errors);
     }
-    
+
     [HttpPost("enable2fa")]
     [Authorize]
     public async Task<IActionResult> EnableTwoFactorAuthentication()
@@ -288,7 +336,7 @@ public class AccountController : ControllerBase
 
         return Ok("2FA token generated.");
     }
-    
+
     [HttpPost("lockuser")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> LockUser(string userName)
@@ -307,7 +355,6 @@ public class AccountController : ControllerBase
 
     private string GenerateJwtToken(IdentityUser user)
     {
-        
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
@@ -327,5 +374,50 @@ public class AccountController : ControllerBase
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private string GenerateTokenString(User user)
+    {
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Role, "User"),
+        };
+
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("Jwt:Key").Value));
+
+        var signingCred = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha512Signature);
+
+        var securityToken = new JwtSecurityToken(
+            claims: claims,
+            expires: DateTime.Now.AddMinutes(60),
+            issuer: _config.GetSection("Jwt:Issuer").Value,
+            audience: _config.GetSection("Jwt:Audience").Value,
+            signingCredentials: signingCred);
+
+        string tokenString = new JwtSecurityTokenHandler().WriteToken(securityToken);
+        return tokenString;
+    }
+    private string GenerateTokenString(IdentityUser user)
+    {
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Role, "User"),
+        };
+
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("Jwt:Key").Value));
+
+        var signingCred = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha512Signature);
+
+        var securityToken = new JwtSecurityToken(
+            claims: claims,
+            expires: DateTime.Now.AddMinutes(60),
+            issuer: _config.GetSection("Jwt:Issuer").Value,
+            audience: _config.GetSection("Jwt:Audience").Value,
+            signingCredentials: signingCred);
+
+        string tokenString = new JwtSecurityTokenHandler().WriteToken(securityToken);
+        return tokenString;
     }
 }

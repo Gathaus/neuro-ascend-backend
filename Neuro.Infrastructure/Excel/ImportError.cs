@@ -1,4 +1,4 @@
-namespace POI.Application.Base.Excel;
+namespace Neuro.Infrastructure.Excel;
 
 public class ImportError
 {
