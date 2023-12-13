@@ -9,9 +9,9 @@ public class Activity : BaseEntity<int>
     [MaxLength(200)]
     public string Name { get; set; }
 
-    public string ImagePath { get; set; }
+    public string? ImagePath { get; set; }
 
-    public AlzheimerStageEnum AlzheimerLevel { get; set; }
+    public List<AlzheimerStageEnum> AlzheimerLevel { get; set; }
 
     public string RiskGroup { get; set; }
 

@@ -1,8 +1,10 @@
 using System.Text;
+using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Neuro.Api.Configurations;
+using Neuro.Api.Managers;
 using Neuro.Api.Middlewares;
 using Neuro.Application;
 using Neuro.Infrastructure;
@@ -82,7 +84,12 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructureEf(postgreServerConnectionString,
     postgreServerConnectionString);
 builder.Services.AddInfrastructure();
-
+builder.Services.AddScoped<StorageManager>(provider =>
+{
+    var accessKey = "DO00LU2DWERDPLG4CD8X";
+    var secretKey = "hLjH9qaI7zCCfYMiO+/pkwQdtpbxbEGwDJJtMWvd8Tg";
+    return new StorageManager(accessKey, secretKey);
+});
 
 builder.Services.AddEndpointsApiExplorer();
 

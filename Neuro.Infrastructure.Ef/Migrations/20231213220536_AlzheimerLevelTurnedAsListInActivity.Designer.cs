@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Neuro.Infrastructure.Ef.Contexts;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Neuro.Infrastructure.Ef.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231213220536_AlzheimerLevelTurnedAsListInActivity")]
+    partial class AlzheimerLevelTurnedAsListInActivity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -244,6 +247,7 @@ namespace Neuro.Infrastructure.Ef.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("ImagePath")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<List<string>>("Materials")
@@ -285,14 +289,12 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ArticleImagePath")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("AuthorImagePath")
-                        .HasColumnType("text");
-
-                    b.Property<List<int>>("RecommendedArticles")
                         .IsRequired()
-                        .HasColumnType("integer[]");
+                        .HasColumnType("text");
 
                     b.Property<string>("Text")
                         .IsRequired()
@@ -348,6 +350,7 @@ namespace Neuro.Infrastructure.Ef.Migrations
                         .HasColumnType("text[]");
 
                     b.Property<string>("GifPath")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<List<string>>("InappropriateDiseases")
@@ -399,6 +402,7 @@ namespace Neuro.Infrastructure.Ef.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("ImagePath")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<List<string>>("Instructions")
@@ -413,15 +417,12 @@ namespace Neuro.Infrastructure.Ef.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<List<int>>("RecommendedRecipes")
-                        .IsRequired()
-                        .HasColumnType("integer[]");
-
                     b.Property<string>("SubCategory")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("VideoPath")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
