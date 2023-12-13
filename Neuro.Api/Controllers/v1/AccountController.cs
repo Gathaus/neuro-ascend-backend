@@ -120,65 +120,21 @@ public class AccountController : ControllerBase
         var payload = await GoogleJsonWebSignature.ValidateAsync(model.IdToken);
         if (payload != null && !string.IsNullOrEmpty(payload.Email))
         {
-            var user = await _unitOfWork.Repository<User>().FindBy(x => x.Email.Equals(payload.Email,
-                StringComparison.OrdinalIgnoreCase)).FirstOrDefaultAsync();
+            var normalizedEmail = payload.Email.ToLower();
+            var user = await _unitOfWork.Repository<User>()
+                .FindBy(x => x.Email.ToLower().Equals(normalizedEmail))
+                .FirstOrDefaultAsync();
 
 
-            // Kullanıcı bilgilerini alın
-            // return Ok(new UserInfo
-            // {
-            //     Email = payload.Email,
-            //     Name = payload.Name,
-            //     // Diğer gerekli bilgiler
-            // });
-
-            // var user = await _userManager.FindByNameAsync(payload?.Email ?? "");
             if (user != null)
             {
-                // var tokenString = GenerateTokenString(user);
                 return Ok(new {IsSuccess = true});
             }
+            
+            return BadRequest(new{errorMessage="User not found."});
         }
 
-        return BadRequest("Invalid Google ID Token.");
-    }
-
-    [HttpGet("signin-google3")]
-    public async Task<IActionResult> GoogleResponse(string code)
-    {
-        // 'code' parametresi Google tarafından gönderilen authorization code'dur.
-        // Bu code'u kullanarak Google'dan access token ve refresh token alabilirsiniz.
-        // Google API'sine istekte bulunacak HttpClient oluşturun
-        var httpClient = new HttpClient();
-
-        // Token isteği için gerekli verileri hazırlayın
-        var requestData = new Dictionary<string, string>
-        {
-            {"code", code},
-            {"client_id", _configuration["Google:ClientId"]},
-            {"client_secret", _configuration["Google:ClientSecret"]},
-            {"redirect_uri", "https://neuroascend.azurewebsites.net/signin-google"},
-            {"grant_type", "authorization_code"}
-        };
-
-        // Google token endpoint'ine istek gönderin
-        var response = await httpClient.PostAsync("https://oauth2.googleapis.com/token",
-            new FormUrlEncodedContent(requestData));
-        if (response.IsSuccessStatusCode)
-        {
-            // Google'dan gelen yanıtı okuyun
-            var responseString = await response.Content.ReadAsStringAsync();
-            var tokenData = JsonConvert.DeserializeObject<GoogleTokenResponse>(responseString);
-
-            // Kullanıcının bilgilerini almak için token'ı kullanın ve sisteminize kaydedin
-            // Burada kullanıcıyı sisteminize kaydetme ve kendi JWT'nizi oluşturma işlemlerinizi yapabilirsiniz
-
-            // Kullanıcıya sisteminizin token'ını döndürün
-            return Ok(new {Token = "Sizin Oluşturduğunuz JWT Token"});
-        }
-
-        // Bir hata oluşursa kullanıcıya bilgi döndürün
-        return BadRequest("Google'dan token alınamadı.");
+        return BadRequest(new{errorMessage="Invalid Google ID Token."});
     }
 
 

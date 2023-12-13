@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -7,11 +8,50 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Neuro.Infrastructure.Ef.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Activities",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    ImagePath = table.Column<string>(type: "text", nullable: false),
+                    AlzheimerLevel = table.Column<byte>(type: "smallint", nullable: false),
+                    RiskGroup = table.Column<string>(type: "text", nullable: false),
+                    Materials = table.Column<List<string>>(type: "text[]", nullable: false),
+                    Steps = table.Column<List<string>>(type: "text[]", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    Warnings = table.Column<List<string>>(type: "text[]", nullable: false),
+                    Suggestions = table.Column<List<string>>(type: "text[]", nullable: false),
+                    Benefits = table.Column<List<string>>(type: "text[]", nullable: false),
+                    ActivityImagePaths = table.Column<List<string>>(type: "text[]", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Activities", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Articles",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Text = table.Column<string>(type: "text", nullable: false),
+                    ArticleImagePath = table.Column<string>(type: "text", nullable: false),
+                    AuthorImagePath = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Articles", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -49,6 +89,106 @@ namespace Neuro.Infrastructure.Ef.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Exercises",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    AverageDuration = table.Column<string>(type: "text", nullable: false),
+                    GifPath = table.Column<string>(type: "text", nullable: false),
+                    Areas = table.Column<List<string>>(type: "text[]", nullable: false),
+                    AreasImagePath = table.Column<string>(type: "text", nullable: false),
+                    Category = table.Column<string>(type: "text", nullable: false),
+                    EligibleAlzheimerDegrees = table.Column<byte[]>(type: "smallint[]", nullable: false),
+                    InappropriateDiseases = table.Column<List<string>>(type: "text[]", nullable: false),
+                    InappropriateDrugs = table.Column<List<string>>(type: "text[]", nullable: false),
+                    Warnings = table.Column<List<string>>(type: "text[]", nullable: false),
+                    RequiredTools = table.Column<List<string>>(type: "text[]", nullable: false),
+                    ExerciseSteps = table.Column<List<string>>(type: "text[]", nullable: false),
+                    NumberRepetitionsSets = table.Column<string>(type: "text", nullable: false),
+                    Suggestions = table.Column<List<string>>(type: "text[]", nullable: false),
+                    Benefits = table.Column<List<string>>(type: "text[]", nullable: false),
+                    ExerciseImageUrls = table.Column<List<string>>(type: "text[]", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Exercises", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FoodPages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    ImagePath = table.Column<string>(type: "text", nullable: false),
+                    VideoPath = table.Column<string>(type: "text", nullable: false),
+                    Calories = table.Column<int>(type: "integer", nullable: false),
+                    Category = table.Column<string>(type: "text", nullable: false),
+                    SubCategory = table.Column<string>(type: "text", nullable: false),
+                    Materials = table.Column<List<string>>(type: "text[]", nullable: false),
+                    Instructions = table.Column<List<string>>(type: "text[]", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FoodPages", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RecommendedRoutines",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ImagePath = table.Column<string>(type: "text", nullable: false),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Calories = table.Column<int>(type: "integer", nullable: false),
+                    DescriptionImagePath = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    RecommendationType = table.Column<byte>(type: "smallint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RecommendedRoutines", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Username = table.Column<string>(type: "text", nullable: false),
+                    FirstName = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    Password = table.Column<string>(type: "text", nullable: false),
+                    LastName = table.Column<string>(type: "text", nullable: false),
+                    BloodType = table.Column<byte>(type: "smallint", nullable: false),
+                    Age = table.Column<int>(type: "integer", nullable: false),
+                    Address = table.Column<string>(type: "text", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: false),
+                    TempImageName = table.Column<string>(type: "text", nullable: false),
+                    ImageUrl = table.Column<string>(type: "text", nullable: true),
+                    Disease = table.Column<string>(type: "text", nullable: false),
+                    AlzheimerStage = table.Column<byte>(type: "smallint", nullable: false),
+                    View = table.Column<string>(type: "text", nullable: false),
+                    ReminderTimeStr = table.Column<string>(type: "text", nullable: false),
+                    ReminderTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    HowToUse = table.Column<string>(type: "text", nullable: false),
+                    BeginningDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    EndDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    MedicationDays = table.Column<byte[]>(type: "smallint[]", nullable: false),
+                    HavePet = table.Column<bool>(type: "boolean", nullable: false),
+                    WantVirtualPet = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -199,6 +339,12 @@ namespace Neuro.Infrastructure.Ef.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Activities");
+
+            migrationBuilder.DropTable(
+                name: "Articles");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
             migrationBuilder.DropTable(
@@ -212,6 +358,18 @@ namespace Neuro.Infrastructure.Ef.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "Exercises");
+
+            migrationBuilder.DropTable(
+                name: "FoodPages");
+
+            migrationBuilder.DropTable(
+                name: "RecommendedRoutines");
+
+            migrationBuilder.DropTable(
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

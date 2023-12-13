@@ -21,6 +21,11 @@ namespace Neuro.Infrastructure.Ef.Contexts;
         #region DbSets
         
         public DbSet<User> Users { get; set; }
+        public DbSet<Exercise> Exercises { get; set; }
+        public DbSet<RecommendedRoutine> RecommendedRoutines { get; set; }
+        public DbSet<FoodPage> FoodPages { get; set; }
+        public DbSet<Article> Articles { get; set; }
+        public DbSet<Activity> Activities { get; set; }
         #endregion
 
         #region Methods
