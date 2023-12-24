@@ -5,6 +5,7 @@ using Neuro.Application.Base.Service;
 using Neuro.Application.Helpers;
 using Neuro.Domain.Entities;
 using Neuro.Domain.UnitOfWork;
+using NLog.Fluent;
 
 namespace Neuro.Api.Controllers.v1;
 
@@ -25,7 +26,7 @@ public class AuthController : BaseController
 
     #endregion
 
-    [HttpGet("Register")]
+    [HttpPost("Register")]
     public async Task<IActionResult> Register([FromBody] RegisterModel model)
     {
         try
@@ -34,27 +35,41 @@ public class AuthController : BaseController
             {
                 Username = model.Username,
                 FirstName = model.FirstName,
-                Email = model.Email,
-                Password = EncryptionHelper.Encrypt(model.Password),
                 LastName = model.LastName,
+                Email = model.Email,
                 BloodType = model.BloodType,
                 Age = model.Age,
                 Address = model.Address,
-                PhoneNumber = model.PhoneNumber,
-                TempImageName = model.TempImageName,
-                ImageUrl = model.ImageUrl,
-                Disease = model.Disease,
-                AlzheimerStage = model.AlzheimerStage,
+                DiseaseTerm = model.DiseaseTerm,
+                DiseaseLevel = model.DiseaseLevel,
                 View = model.View,
-                ReminderTimeStr = model.ReminderTimeStr,
                 ReminderTime = model.ReminderTime,
-                HowToUse = model.HowToUse,
                 BeginningDate = model.BeginningDate,
                 EndDate = model.EndDate,
-                MedicationDays = model.MedicationDays,
                 HavePet = model.HavePet,
-                WantVirtualPet = model.WantVirtualPet
+                WantVirtualPet = model.WantVirtualPet,
+                CountryCode = model.CountryCode,
+                CountryCallingCode = model.CountryCallingCode,
+                MobileNumber = model.MobileNumber,
+                Amount = model.Amount,
+                BeginDay = model.BeginDay,
+                BeginMonth = model.BeginMonth,
+                EndDay = model.EndDay,
+                EndMonth = model.EndMonth,
+                SelectedDays = model.SelectedDays,
+                Time = model.Time,
+                Usage = model.Usage,
+                ImageUrl = model.ImageUrl
             };
+            
+            var userFromDb = _unitOfWork.Repository<User>().FindBy(x => x.Email.ToLower().Equals(model.Email.ToLower()))
+                .FirstOrDefault();
+            if (userFromDb != null)
+            {
+                return BadRequest(new {IsSuccess = false, Message = "User already exists"});
+            }
+
+
             await _unitOfWork.Repository<User>().InsertAsync(user);
             var result = await _unitOfWork.SaveChangesAsync();
             if (result > 0)
@@ -78,14 +93,16 @@ public class AuthController : BaseController
         try
         {
             var user = await _unitOfWork.Repository<User>()
-                .FindBy(x => x.Email.Equals(model.Email, StringComparison.OrdinalIgnoreCase))
+                .FindBy(x => x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()))
                 .FirstOrDefaultAsync();
+            
 
-            if (user != null && EncryptionHelper.Decrypt(user.Password).Equals(model.Password))
+            if (user != null)
             {
-                return Ok(new {IsSuccess = true, Message = "Login Success"});
+                var medicineDays = await _unitOfWork.Repository<MedicineUser>().FindBy(x=>x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim())).ToListAsync();
+                return Ok(new {User= user,MedicineDays = medicineDays,IsSuccess = true});
             }
-            return Unauthorized();
+            return BadRequest(new {IsSuccess = false, Message = "Login Failed"});
         }
         catch (Exception e)
         {

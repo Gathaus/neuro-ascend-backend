@@ -26,6 +26,7 @@ namespace Neuro.Infrastructure.Ef.Contexts;
         public DbSet<FoodPage> FoodPages { get; set; }
         public DbSet<Article> Articles { get; set; }
         public DbSet<Activity> Activities { get; set; }
+        public DbSet<MedicineUser> MedicineUsers { get; set; }
         #endregion
 
         #region Methods

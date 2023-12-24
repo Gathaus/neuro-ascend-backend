@@ -47,6 +47,8 @@ public class ActivityController : BaseController
             {
                 return NotFound();
             }
+            if(activity.ImagePath is null)
+                activity.ImagePath = "Neuro-ascend-mobil-mvp/images/photo.jpg";
 
             return Ok(activity);
         }
@@ -63,7 +65,15 @@ public class ActivityController : BaseController
         try
         {
             var activities = await _unitOfWork.Repository<Activity>().FindBy().ToListAsync();
+
+            foreach (var activity in activities)
+            {
+                if (activity.ImagePath is null)
+                    activity.ImagePath = "Neuro-ascend-mobil-mvp/images/photo.jpg";
+            }
+            
             return Ok(activities);
+
         }
         catch (Exception e)
         {

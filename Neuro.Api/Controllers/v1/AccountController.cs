@@ -51,6 +51,32 @@ public class AccountController : ControllerBase
         return BadRequest(result.Errors);
     }
 
+    [HttpPost("addMedicine")]
+    public async Task<IActionResult> AddMedicine(MedicineModel model)
+    {
+        var data = await _unitOfWork.Repository<MedicineUser>().FindBy(x =>
+                x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()) && x.WeekDay == model.WeekDay)
+            .FirstOrDefaultAsync();
+        if (data != null)
+        {
+            return BadRequest("You already added medicine.");
+        }
+        var usermedicine = new MedicineUser()
+        {
+            Email = model.Email,
+            WeekDay = model.WeekDay,
+        };
+
+        var result = await _unitOfWork.Repository<MedicineUser>().InsertAsync(usermedicine);
+        var rows = await _unitOfWork.SaveChangesAsync();
+        if (rows > 0)
+        {
+            return Ok(new {IsSuccess = true});
+        }
+        return BadRequest(new {IsSuccess = false});
+
+    }
+
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginModel model)
     {
@@ -111,9 +137,8 @@ public class AccountController : ControllerBase
 
         return BadRequest("Invalid Google ID Token.");
     }
-    
-    
-    
+
+
     [HttpPost("signin-google2")]
     public async Task<IActionResult> VerifyGoogleToken2([FromBody] GoogleToken model)
     {
@@ -130,11 +155,11 @@ public class AccountController : ControllerBase
             {
                 return Ok(new {IsSuccess = true});
             }
-            
-            return BadRequest(new{errorMessage="User not found."});
+
+            return BadRequest(new {errorMessage = "User not found."});
         }
 
-        return BadRequest(new{errorMessage="Invalid Google ID Token."});
+        return BadRequest(new {errorMessage = "Invalid Google ID Token."});
     }
 
 
@@ -384,6 +409,7 @@ public class AccountController : ControllerBase
         string tokenString = new JwtSecurityTokenHandler().WriteToken(securityToken);
         return tokenString;
     }
+
     private string GenerateTokenString(IdentityUser user)
     {
         var claims = new List<Claim>

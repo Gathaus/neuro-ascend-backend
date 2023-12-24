@@ -38,8 +38,14 @@ namespace Neuro.Api.Controllers.v1
         public async Task<IActionResult> GetArticle(int id)
         {
             var article = await _unitOfWork.Repository<Article>().GetByIdAsync(id);
+            
             if (article == null)
                 return NotFound();
+            if (article.ArticleImagePath is null)
+                article.ArticleImagePath = "Neuro-ascend-mobil-mvp/images/photo.jpg";
+            if (article.AuthorImagePath is null)
+                article.AuthorImagePath = "Neuro-ascend-mobil-mvp/images/photo.jpg";
+            
             return Ok(article);
         }
 
@@ -47,6 +53,15 @@ namespace Neuro.Api.Controllers.v1
         public async Task<IActionResult> GetAllArticles()
         {
             var articles = await _unitOfWork.Repository<Article>().FindBy().ToListAsync();
+
+            foreach (var article in articles)
+            {
+                if (article.ArticleImagePath is null)
+                    article.ArticleImagePath = "Neuro-ascend-mobil-mvp/images/photo.jpg";
+                if (article.AuthorImagePath is null)
+                    article.AuthorImagePath = "Neuro-ascend-mobil-mvp/images/photo.jpg";
+            }
+            
             return Ok(articles);
         }
 
@@ -94,13 +109,12 @@ namespace Neuro.Api.Controllers.v1
             }
         }
         
-        [HttpGet("GetControllerPath")]
-        public IActionResult GetControllerPath()
+        [HttpGet("GetImage")]
+        public FileResult GetImage()
         {
-            string controllerFileName = "ArticleController.cs";
-            string controllerPath = this.GetControllerFilePath(controllerFileName);
+            var file = this.GetControllerFilePath("photo.jpg");
 
-            return Ok(controllerPath);
+            return File(file, "image/jpeg");
         }
     }
 }

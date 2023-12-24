@@ -429,6 +429,28 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.ToTable("FoodPages");
                 });
 
+            modelBuilder.Entity("Neuro.Domain.Entities.MedicineUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("WeekDay")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MedicineUsers");
+                });
+
             modelBuilder.Entity("Neuro.Domain.Entities.RecommendedRoutine", b =>
                 {
                     b.Property<int>("Id")
@@ -437,19 +459,28 @@ namespace Neuro.Infrastructure.Ef.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Calories")
+                    b.Property<int?>("ActivityId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ArticleId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("Calories")
                         .HasColumnType("integer");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("DescriptionImagePath")
-                        .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("ExerciseId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("FoodId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ImagePath")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<byte>("RecommendationType")
@@ -460,6 +491,14 @@ namespace Neuro.Infrastructure.Ef.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ActivityId");
+
+                    b.HasIndex("ArticleId");
+
+                    b.HasIndex("ExerciseId");
+
+                    b.HasIndex("FoodId");
 
                     b.ToTable("RecommendedRoutines");
                 });
@@ -479,8 +518,16 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.Property<int>("Age")
                         .HasColumnType("integer");
 
-                    b.Property<byte>("AlzheimerStage")
-                        .HasColumnType("smallint");
+                    b.Property<string>("Amount")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("BeginDay")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("BeginMonth")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateOnly>("BeginningDate")
                         .HasColumnType("date");
@@ -488,7 +535,18 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.Property<byte>("BloodType")
                         .HasColumnType("smallint");
 
-                    b.Property<string>("Disease")
+                    b.Property<string>("CountryCallingCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<byte>("DiseaseLevel")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("DiseaseTerm")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -499,16 +557,19 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
 
+                    b.Property<int>("EndDay")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("EndMonth")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("HavePet")
                         .HasColumnType("boolean");
-
-                    b.Property<string>("HowToUse")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("ImageUrl")
                         .HasColumnType("text");
@@ -517,31 +578,29 @@ namespace Neuro.Infrastructure.Ef.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<byte[]>("MedicationDays")
-                        .IsRequired()
-                        .HasColumnType("smallint[]");
-
-                    b.Property<string>("Password")
+                    b.Property<string>("MobileNumber")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
+                    b.Property<string>("Password")
                         .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("ReminderTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("ReminderTimeStr")
+                    b.Property<byte[]>("SelectedDays")
+                        .IsRequired()
+                        .HasColumnType("smallint[]");
+
+                    b.Property<string>("Time")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("TempImageName")
+                    b.Property<string>("Usage")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Username")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("View")
@@ -605,6 +664,33 @@ namespace Neuro.Infrastructure.Ef.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Neuro.Domain.Entities.RecommendedRoutine", b =>
+                {
+                    b.HasOne("Neuro.Domain.Entities.Activity", "Activity")
+                        .WithMany()
+                        .HasForeignKey("ActivityId");
+
+                    b.HasOne("Neuro.Domain.Entities.Article", "Article")
+                        .WithMany()
+                        .HasForeignKey("ArticleId");
+
+                    b.HasOne("Neuro.Domain.Entities.Exercise", "Exercise")
+                        .WithMany()
+                        .HasForeignKey("ExerciseId");
+
+                    b.HasOne("Neuro.Domain.Entities.FoodPage", "Food")
+                        .WithMany()
+                        .HasForeignKey("FoodId");
+
+                    b.Navigation("Activity");
+
+                    b.Navigation("Article");
+
+                    b.Navigation("Exercise");
+
+                    b.Navigation("Food");
                 });
 #pragma warning restore 612, 618
         }

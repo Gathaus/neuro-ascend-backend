@@ -86,8 +86,8 @@ builder.Services.AddInfrastructureEf(postgreServerConnectionString,
 builder.Services.AddInfrastructure();
 builder.Services.AddScoped<StorageManager>(provider =>
 {
-    var accessKey = "DO00LU2DWERDPLG4CD8X";
-    var secretKey = "hLjH9qaI7zCCfYMiO+/pkwQdtpbxbEGwDJJtMWvd8Tg";
+    var accessKey = "DO007U98MQTMT2RLVHKE";
+    var secretKey = "YcMZvxYJFUUg9CX9JQhZksmM0isKsv6Z4k8mZYOeAag";
     return new StorageManager(accessKey, secretKey);
 });
 

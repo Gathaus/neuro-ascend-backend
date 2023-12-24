@@ -4,13 +4,20 @@ namespace Neuro.Api.Extensions;
 
 public static class ControllerExtensions
 {
-    public static string GetControllerFilePath(this ControllerBase controller, string controllerFileName)
+    public static byte[] GetControllerFilePath(this ControllerBase controller, string fileName)
     {
         var hostingEnvironment = (IWebHostEnvironment)controller.HttpContext.RequestServices.GetService(typeof(IWebHostEnvironment));
         string rootPath = hostingEnvironment.ContentRootPath;
-        string controllerFolder = "Controllers"; // Controller dosyalarının bulunduğu klasör adı
-        string controllerPath = Path.Combine(rootPath, controllerFolder, controllerFileName);
+        string filesFolder = "Files"; 
+        string filePath = Path.Combine(rootPath, filesFolder, fileName);
 
-        return controllerPath;
+        if (File.Exists(filePath))
+        {
+            // File exists, return the file as byte array
+            return File.ReadAllBytes(filePath);
+        }
+
+        throw new FileNotFoundException($"The file {filePath} does not exist.");
     }
+
 }

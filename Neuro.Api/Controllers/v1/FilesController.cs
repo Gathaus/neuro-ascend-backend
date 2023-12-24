@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Neuro.Api.Managers;
 
@@ -13,21 +14,27 @@ namespace Neuro.Api.Controllers.v1
         {
             _storageManager = storageManager;
         }
+        
+        public class FileModel
+        {
+            public string FilePath { get; set; }
+            public IFormFile File { get; set; }
+        }
 
         [HttpPost("upload")]
-        public async Task<IActionResult> Upload(string filePath, IFormFile file)
+        public async Task<IActionResult> Upload([FromForm]FileModel model)
         {
-            if (file == null || file.Length == 0)
+            if (model.File == null || model.File.Length == 0)
             {
                 return BadRequest("Dosya bulunamadı.");
             }
 
-            using (var stream = file.OpenReadStream())
+            using (var stream = model.File.OpenReadStream())
             {
-                await _storageManager.UploadFileAsync(filePath, stream);
+                await _storageManager.UploadFileAsync(model.FilePath, stream);
             }
 
-            return Ok($"'{filePath}' başarıyla yüklendi.");
+            return Ok(new{FilePath=model.FilePath,IsSuccess=true});
         }
 
 
@@ -41,6 +48,7 @@ namespace Neuro.Api.Controllers.v1
         [HttpGet("download/{*filePath}")]
         public async Task<IActionResult> Download(string filePath)
         {
+            filePath = WebUtility.UrlDecode(filePath);
             var stream = await _storageManager.DownloadFileAsync(filePath);
             if (stream == null)
             {

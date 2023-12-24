@@ -43,7 +43,12 @@ public class ExerciseController : BaseController
         {
             var exercise = await _unitOfWork.Repository<Exercise>().GetByIdAsync(id);
             if (exercise != null)
+            {
+                if (exercise.GifPath is null)
+                    exercise.GifPath = "Neuro-ascend-mobil-mvp/images/photo.jpg";
                 return Ok(exercise);
+            }
+
 
             return NotFound(new { IsSuccess = false, Message = "Exercise not found." });
         }
@@ -60,6 +65,13 @@ public class ExerciseController : BaseController
         try
         {
             var exercises = await _unitOfWork.Repository<Exercise>().FindBy().ToListAsync();
+
+            foreach (var exercise in exercises)
+            {
+                if (exercise.GifPath is null)
+                    exercise.GifPath = "Neuro-ascend-mobil-mvp/images/photo.jpg";
+            }
+            
             return Ok(exercises);
         }
         catch (Exception e)

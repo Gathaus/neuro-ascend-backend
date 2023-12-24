@@ -28,6 +28,12 @@ public class FoodPageController : BaseController
     {
         var foodPage = await _unitOfWork.Repository<FoodPage>().GetByIdAsync(id);
         if (foodPage == null) return NotFound();
+        
+        if (foodPage.VideoPath is null)
+            foodPage.VideoPath = "Neuro-ascend-mobil-mvp/videos/SampleVideo";
+        
+        
+        
         return Ok(foodPage);
     }
 
@@ -35,6 +41,13 @@ public class FoodPageController : BaseController
     public IActionResult List()
     {
         var foodPages = _unitOfWork.Repository<FoodPage>().FindBy();
+
+        foreach (var foodPage in foodPages)
+        {
+            if (foodPage.VideoPath is null)
+                foodPage.VideoPath = "Neuro-ascend-mobil-mvp/videos/SampleVideo";
+        }
+        
         return Ok(foodPages);
     }
 
