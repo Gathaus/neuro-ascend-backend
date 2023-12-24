@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Neuro.Domain.Entities;
 
 #region Entity of TPrimaryKey
@@ -5,6 +7,15 @@ namespace Neuro.Domain.Entities;
 public interface IEntity
 {
 }
+
+public interface IAuditedEntity
+{
+    byte[] Timestamp { get; set; }
+    
+    void UpdateTimestamp();
+
+}
+
 
 public interface IEntity<TPrimaryKey> : IEntity
 {
@@ -93,9 +104,13 @@ public interface IAuditedEntity<TPrimaryKey, TUserPrimaryKey> : IEntity<TPrimary
     TUserPrimaryKey ModifiedBy { get; set; }
     DateTimeOffset ModifiedAt { get; set; }
     byte[] Timestamp { get; set; }
+
 }
 
-public abstract class AuditedBaseEntity<TPrimaryKey, TUserPrimaryKey> : BaseEntity<TPrimaryKey>, IAuditedEntity<TPrimaryKey,TUserPrimaryKey>
+
+
+
+public abstract class AuditedBaseEntity<TPrimaryKey, TUserPrimaryKey> : BaseEntity<TPrimaryKey>, IAuditedEntity<TPrimaryKey, TUserPrimaryKey>, IAuditedEntity
 {
     public TUserPrimaryKey CreatedBy { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
@@ -107,6 +122,11 @@ public abstract class AuditedBaseEntity<TPrimaryKey, TUserPrimaryKey> : BaseEnti
      {
          CreatedAt = DateTimeOffset.UtcNow;
      }
+      
+      public void UpdateTimestamp()
+      {
+          Timestamp = BitConverter.GetBytes(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+      }
 }
 
 #endregion

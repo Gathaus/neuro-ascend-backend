@@ -99,9 +99,14 @@ public class AuthController : BaseController
 
             if (user != null)
             {
-                var medicineDays = await _unitOfWork.Repository<MedicineUser>().FindBy(x=>x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim())).ToListAsync();
-                return Ok(new {User= user,MedicineDays = medicineDays,IsSuccess = true});
+                var medicineDays = await _unitOfWork.Repository<MedicineUser>()
+                    .FindBy(x => x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim())).ToListAsync();
+                var userMood = await _unitOfWork.Repository<UserMood>()
+                    .FindBy(x => (x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim())) 
+                                 && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date ).ToListAsync();
+                return Ok(new {User = user, MedicineDays = medicineDays,UserMood = userMood.FirstOrDefault()?.Mood.ToString() ?? "None", IsSuccess = true});
             }
+
             return BadRequest(new {IsSuccess = false, Message = "Login Failed"});
         }
         catch (Exception e)

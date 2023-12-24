@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Neuro.Api.Models;
 using Neuro.Application.Base.Service;
 using Neuro.Domain.Entities;
+using Neuro.Domain.Entities.Enums;
 using Neuro.Domain.UnitOfWork;
 using Newtonsoft.Json;
 
@@ -61,6 +62,7 @@ public class AccountController : ControllerBase
         {
             return BadRequest("You already added medicine.");
         }
+
         var usermedicine = new MedicineUser()
         {
             Email = model.Email,
@@ -73,8 +75,8 @@ public class AccountController : ControllerBase
         {
             return Ok(new {IsSuccess = true});
         }
-        return BadRequest(new {IsSuccess = false});
 
+        return BadRequest(new {IsSuccess = false});
     }
 
     [HttpPost("login")]
@@ -118,17 +120,31 @@ public class AccountController : ControllerBase
         {
             // var user = await _unitOfWork.Repository<User>().FindBy(x => x.Email.Equals(payload.Email,
             //     StringComparison.OrdinalIgnoreCase)).FirstOrDefaultAsync();
-            
+
             var user = await _unitOfWork.Repository<User>()
                 .FindBy(x => x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
                 .FirstOrDefaultAsync();
-            
+
 
             if (user != null)
             {
-                var medicineDays = await _unitOfWork.Repository<MedicineUser>().FindBy(x=>x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim())).ToListAsync();
-                return Ok(new {User= user,MedicineDays = medicineDays,IsSuccess = true});
+                var medicineDays = await _unitOfWork.Repository<MedicineUser>()
+                    .FindBy(x => x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim())).ToListAsync();
+                var userMood = await _unitOfWork.Repository<UserMood>()
+                    .FindBy(x => (x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
+                                 && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
+                var userMedicine = await _unitOfWork.Repository<UserMedicine>()
+                    .FindBy(x => (x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
+                                 && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
+                return Ok(new
+                {
+                    User = user, MedicineDays = medicineDays,
+                    UserMood = userMood.FirstOrDefault()?.Mood.ToString() ?? "None",
+                    UserMedicine = userMedicine.FirstOrDefault()?.IsTaken ?? false,
+                    IsSuccess = true
+                });
             }
+
             return BadRequest(new {IsSuccess = false, Message = "User Not Found"});
 
             // var user = await _userManager.FindByNameAsync(payload?.Email ?? "");
@@ -140,6 +156,70 @@ public class AccountController : ControllerBase
         }
 
         return BadRequest("Invalid Google ID Token.");
+    }
+
+    [HttpPost("setUserMood")]
+    public async Task<IActionResult> SetUserMood([FromBody] UserMoodRequest model)
+    {
+        if (model.UserId == null)
+        {
+            return BadRequest(new {IsSuccess = false});
+        }
+
+        var user = await _unitOfWork.Repository<User>()
+            .FindBy(x => x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()))
+            .FirstOrDefaultAsync();
+        if (user != null)
+        {
+            var userMood = new UserMood()
+            {
+                Email = model.Email,
+                Mood = model.Mood,
+                CreatedAt = DateTimeOffset.UtcNow
+            };
+            await _unitOfWork.Repository<UserMood>().InsertAsync(userMood);
+            var rows = await _unitOfWork.SaveChangesAsync();
+            if (rows > 0)
+            {
+                return Ok(new {IsSuccess = true});
+            }
+
+            return BadRequest(new {IsSuccess = false});
+        }
+
+        return BadRequest(new {IsSuccess = false});
+    }
+
+    [HttpPost("setUserMedicine")]
+    public async Task<IActionResult> SetUserMedicine([FromBody] UserMedicineRequest model)
+    {
+        if (model.UserId == null)
+        {
+            return BadRequest(new {IsSuccess = false});
+        }
+
+        var user = await _unitOfWork.Repository<User>()
+            .FindBy(x => x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()))
+            .FirstOrDefaultAsync();
+        if (user != null)
+        {
+            var userMedicine = new UserMedicine()
+            {
+                Email = model.Email,
+                IsTaken = model.IsTaken,
+                CreatedAt = DateTimeOffset.UtcNow
+            };
+            await _unitOfWork.Repository<UserMedicine>().InsertAsync(userMedicine);
+            var rows = await _unitOfWork.SaveChangesAsync();
+            if (rows > 0)
+            {
+                return Ok(new {IsSuccess = true});
+            }
+
+            return BadRequest(new {IsSuccess = false});
+        }
+
+        return BadRequest(new {IsSuccess = false});
     }
 
 
