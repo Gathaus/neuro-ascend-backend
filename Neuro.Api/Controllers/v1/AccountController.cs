@@ -118,14 +118,18 @@ public class AccountController : ControllerBase
         {
             // var user = await _unitOfWork.Repository<User>().FindBy(x => x.Email.Equals(payload.Email,
             //     StringComparison.OrdinalIgnoreCase)).FirstOrDefaultAsync();
+            
+            var user = await _unitOfWork.Repository<User>()
+                .FindBy(x => x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
+                .FirstOrDefaultAsync();
+            
 
-
-            return Ok(new UserInfo
+            if (user != null)
             {
-                Email = payload.Email,
-                Name = payload.Name,
-                // Diğer gerekli bilgiler
-            });
+                var medicineDays = await _unitOfWork.Repository<MedicineUser>().FindBy(x=>x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim())).ToListAsync();
+                return Ok(new {User= user,MedicineDays = medicineDays,IsSuccess = true});
+            }
+            return BadRequest(new {IsSuccess = false, Message = "User Not Found"});
 
             // var user = await _userManager.FindByNameAsync(payload?.Email ?? "");
             // if (user != null)
