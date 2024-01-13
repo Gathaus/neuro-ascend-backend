@@ -64,6 +64,25 @@ namespace Neuro.Api.Controllers.v1
             
             return Ok(articles);
         }
+        
+        [HttpGet("GetUserNextArticle/{userId}")]
+        public async Task<IActionResult> GetUserNextArticle(int userId)
+        {
+            var userProgress = await _unitOfWork.Repository<UserProgress>().GetByIdAsync(userId);
+            if (userProgress == null) return NotFound();
+
+            var article = await _unitOfWork.Repository<Article>()
+                .FindBy(x=>x.Id > (userProgress.LastArticleId ?? 0))
+                .FirstOrDefaultAsync();
+            if (article == null) return NotFound();
+            
+            if (article.ArticleImagePath is null)
+                article.ArticleImagePath = "Neuro-ascend-mobil-mvp/images/photo.jpg";
+            if (article.AuthorImagePath is null)
+                article.AuthorImagePath = "Neuro-ascend-mobil-mvp/images/photo.jpg";
+
+            return Ok(article);
+        }
 
         [HttpPut("Update/{id}")]
         public async Task<IActionResult> UpdateArticle(int id, [FromBody] Article article)

@@ -96,6 +96,31 @@ public class ExerciseController : BaseController
             return BadRequest(new { IsSuccess = false, Message = "Failed to update exercise." });
         }
     }
+    
+    [HttpGet("GetUserNextExercise/{userId}")]
+    public async Task<IActionResult> GetUserNextExercise(int userId)
+    {
+        try
+        {
+            var userProgress = await _unitOfWork.Repository<UserProgress>().GetByIdAsync(userId);
+            if (userProgress == null) return NotFound();
+
+            var exercise = await _unitOfWork.Repository<Exercise>()
+                .FindBy(x => x.Id > (userProgress.LastExerciseId ?? 0))
+                .FirstOrDefaultAsync();
+            if (exercise == null) return NotFound();
+
+            if (exercise.GifPath is null)
+                exercise.GifPath = "Neuro-ascend-mobil-mvp/images/photo.jpg";
+
+            return Ok(exercise);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return BadRequest(new { IsSuccess = false, Message = "Failed to retrieve exercise." });
+        }
+    }
 
     [HttpDelete("Delete/{id}")]
     public async Task<IActionResult> DeleteExercise(int id)

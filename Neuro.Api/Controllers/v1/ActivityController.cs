@@ -81,6 +81,31 @@ public class ActivityController : BaseController
             return BadRequest(e.Message);
         }
     }
+    
+    [HttpGet("GetUserNextActivity/{userId}")]
+    public async Task<IActionResult> GetUserNextActivity(int userId)
+    {
+        try
+        {
+            var userProgress = await _unitOfWork.Repository<UserProgress>().GetByIdAsync(userId);
+            if (userProgress == null) return NotFound();
+
+            var activity = await _unitOfWork.Repository<Activity>()
+                .FindBy(x=>x.Id > (userProgress.LastActivityId ?? 0))
+                .FirstOrDefaultAsync();
+            if (activity == null) return NotFound();
+
+            if(activity.ImagePath is null)
+                activity.ImagePath = "Neuro-ascend-mobil-mvp/images/photo.jpg";
+            
+            return Ok(activity);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return BadRequest(e.Message);
+        }
+    }
 
     [HttpPut("Update")]
     public async Task<IActionResult> Update([FromBody] Activity activity)

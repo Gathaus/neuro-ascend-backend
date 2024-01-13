@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Neuro.Domain.Entities;
 using Neuro.Domain.UnitOfWork;
 
@@ -49,6 +50,26 @@ public class FoodPageController : BaseController
         }
         
         return Ok(foodPages);
+    }
+    
+    [HttpGet("GetUserNextFoodPage/{userId}")]
+    public async Task<IActionResult> GetUserNextFoodPage(int userId)
+    {
+        var userProgress = await _unitOfWork.Repository<UserProgress>().GetByIdAsync(userId);
+        if (userProgress == null) return NotFound();
+
+        var foodPage = await _unitOfWork.Repository<FoodPage>()
+            .FindBy(x=>x.Id > (userProgress.LastFoodId ?? 0))
+            .FirstOrDefaultAsync();
+        if (foodPage == null) return NotFound();
+
+        
+        
+        if (foodPage.VideoPath is null)
+            foodPage.VideoPath = "Neuro-ascend-mobil-mvp/videos/SampleVideo";
+        
+        
+        return Ok(foodPage);
     }
 
     [HttpPut("Update/{id}")]
