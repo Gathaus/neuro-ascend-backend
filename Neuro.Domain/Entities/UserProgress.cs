@@ -3,9 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Neuro.Domain.Entities;
 
-public class UserProgress
+public class UserProgress : BaseEntity<int>
 {
-    [Key]
     [ForeignKey("User")]
     public int UserId { get; set; }
 

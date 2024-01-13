@@ -675,8 +675,11 @@ namespace Neuro.Infrastructure.Ef.Migrations
 
             modelBuilder.Entity("Neuro.Domain.Entities.UserProgress", b =>
                 {
-                    b.Property<int>("UserId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("LastActivityId")
                         .HasColumnType("integer");
@@ -690,7 +693,10 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.Property<int?>("LastFoodId")
                         .HasColumnType("integer");
 
-                    b.HasKey("UserId");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("LastActivityId");
 
@@ -699,6 +705,8 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.HasIndex("LastExerciseId");
 
                     b.HasIndex("LastFoodId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("UserProgresses");
                 });
