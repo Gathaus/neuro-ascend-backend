@@ -33,8 +33,13 @@ public class FoodPageController : BaseController
         if (foodPage.VideoPath is null)
             foodPage.VideoPath = "Neuro-ascend-mobil-mvp/videos/SampleVideo";
 
+        
+        var recommendedDatas = await _unitOfWork.Repository<FoodPage>()
+            .FindBy(x => foodPage.RecommendedRecipes.Contains(x.Id))
+            .Select(x => new {x.Id, x.Name, x.ImagePath}).ToListAsync();
 
-        return Ok(foodPage);
+
+        return Ok(new{ foodData= foodPage, recommendedDatas});
     }
 
     [HttpGet("List")]
@@ -73,16 +78,16 @@ public class FoodPageController : BaseController
             : _unitOfWork.Repository<FoodPage>()
                 .FindBy(x => x.Id > (userProgress.EveningLastFoodId ?? 0)
                              && x.Category.Equals("Main Course"));
-
+        
+        
+        
         var foodPage = await foodPageQuery.FirstOrDefaultAsync();
         if (foodPage == null) return NotFound();
 
 
         if (foodPage.VideoPath is null)
             foodPage.VideoPath = "Neuro-ascend-mobil-mvp/videos/SampleVideo";
-
-
-        return Ok(foodPage);
+        return Ok(new {foodData= foodPage});
     }
 
     [HttpPut("Update/{id}")]
