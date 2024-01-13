@@ -54,7 +54,8 @@ public class FoodPageController : BaseController
     [HttpGet("GetUserNextFoodPage/{userId}")]
     public async Task<IActionResult> GetUserNextFoodPage(int userId, bool isMorning = false)
     {
-        var userProgress = await _unitOfWork.Repository<UserProgress>().GetByIdAsync(userId);
+        var sss = await _unitOfWork.Repository<UserProgress>().FindBy().ToListAsync();
+        var userProgress = await _unitOfWork.Repository<UserProgress>().FindBy(x=>x.UserId==userId).FirstOrDefaultAsync();
         if (userProgress == null)
         {
             userProgress = new UserProgress
@@ -67,10 +68,10 @@ public class FoodPageController : BaseController
 
         var foodPageQuery = isMorning
             ? _unitOfWork.Repository<FoodPage>()
-                .FindBy(x => x.Id == (userProgress.MorningLastFoodId ?? 1) && 
+                .FindBy(x => x.Id > (userProgress.MorningLastFoodId ?? 0) && 
                              x.Category.Equals("Breakfast"))
             : _unitOfWork.Repository<FoodPage>()
-                .FindBy(x => x.Id == (userProgress.EveningLastFoodId ?? 1)
+                .FindBy(x => x.Id > (userProgress.EveningLastFoodId ?? 0)
                              && x.Category.Equals("Main Course"));
 
         var foodPage = await foodPageQuery.FirstOrDefaultAsync();

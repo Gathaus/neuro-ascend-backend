@@ -102,7 +102,8 @@ public class ExerciseController : BaseController
     {
         try
         {
-            var userProgress = await _unitOfWork.Repository<UserProgress>().GetByIdAsync(userId);
+                    var userProgress = await _unitOfWork.Repository<UserProgress>().FindBy(x=>x.UserId==userId).FirstOrDefaultAsync();
+
             if (userProgress == null)
             {
                 userProgress = new UserProgress

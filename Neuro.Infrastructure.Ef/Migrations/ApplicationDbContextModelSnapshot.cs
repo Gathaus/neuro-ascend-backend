@@ -682,7 +682,6 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("EveningLastFoodId")
-                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<int?>("LastActivityId")
@@ -695,7 +694,6 @@ namespace Neuro.Infrastructure.Ef.Migrations
                         .HasColumnType("integer");
 
                     b.Property<int?>("MorningLastFoodId")
-                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.Property<int>("UserId")
@@ -800,9 +798,7 @@ namespace Neuro.Infrastructure.Ef.Migrations
                 {
                     b.HasOne("Neuro.Domain.Entities.FoodPage", "EveningLastFood")
                         .WithMany()
-                        .HasForeignKey("EveningLastFoodId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("EveningLastFoodId");
 
                     b.HasOne("Neuro.Domain.Entities.Activity", "Activity")
                         .WithMany()
@@ -818,9 +814,7 @@ namespace Neuro.Infrastructure.Ef.Migrations
 
                     b.HasOne("Neuro.Domain.Entities.FoodPage", "MorningLastFood")
                         .WithMany()
-                        .HasForeignKey("MorningLastFoodId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("MorningLastFoodId");
 
                     b.HasOne("Neuro.Domain.Entities.User", "User")
                         .WithMany()

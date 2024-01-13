@@ -24,10 +24,10 @@ namespace Neuro.Domain.Entities
         public int? LastArticleId { get; set; }
 
         public virtual User User { get; set; }
-        public virtual FoodPage MorningLastFood { get; set; }
-        public virtual FoodPage EveningLastFood { get; set; }
-        public virtual Exercise Exercise { get; set; }
-        public virtual Activity Activity { get; set; }
-        public virtual Article Article { get; set; }
+        public virtual FoodPage? MorningLastFood { get; set; }
+        public virtual FoodPage? EveningLastFood { get; set; }
+        public virtual Exercise? Exercise { get; set; }
+        public virtual Activity? Activity { get; set; }
+        public virtual Article? Article { get; set; }
     }
 }

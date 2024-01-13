@@ -36,7 +36,8 @@ namespace Neuro.Api.Controllers.v1
         [HttpGet("Get/{userId}")]
         public async Task<IActionResult> GetUserProgress(int userId)
         {
-            var userProgress = await _unitOfWork.Repository<UserProgress>().GetByIdAsync(userId);
+                    var userProgress = await _unitOfWork.Repository<UserProgress>().FindBy(x=>x.UserId==userId).FirstOrDefaultAsync();
+
 
             if (userProgress == null)
                 return NotFound();
@@ -82,7 +83,8 @@ namespace Neuro.Api.Controllers.v1
         {
             try
             {
-                var userProgress = await _unitOfWork.Repository<UserProgress>().GetByIdAsync(userId);
+                        var userProgress = await _unitOfWork.Repository<UserProgress>().FindBy(x=>x.UserId==userId).FirstOrDefaultAsync();
+
                 if (userProgress == null)
                     return NotFound();
 

@@ -68,7 +68,8 @@ namespace Neuro.Api.Controllers.v1
         [HttpGet("GetUserNextArticle/{userId}")]
         public async Task<IActionResult> GetUserNextArticle(int userId)
         {
-            var userProgress = await _unitOfWork.Repository<UserProgress>().GetByIdAsync(userId);
+                    var userProgress = await _unitOfWork.Repository<UserProgress>().FindBy(x=>x.UserId==userId).FirstOrDefaultAsync();
+
             if (userProgress == null)
             {
                 userProgress = new UserProgress
