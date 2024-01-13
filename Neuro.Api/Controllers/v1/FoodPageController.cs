@@ -29,12 +29,11 @@ public class FoodPageController : BaseController
     {
         var foodPage = await _unitOfWork.Repository<FoodPage>().GetByIdAsync(id);
         if (foodPage == null) return NotFound();
-        
+
         if (foodPage.VideoPath is null)
             foodPage.VideoPath = "Neuro-ascend-mobil-mvp/videos/SampleVideo";
-        
-        
-        
+
+
         return Ok(foodPage);
     }
 
@@ -48,12 +47,12 @@ public class FoodPageController : BaseController
             if (foodPage.VideoPath is null)
                 foodPage.VideoPath = "Neuro-ascend-mobil-mvp/videos/SampleVideo";
         }
-        
+
         return Ok(foodPages);
     }
-    
+
     [HttpGet("GetUserNextFoodPage/{userId}")]
-    public async Task<IActionResult> GetUserNextFoodPage(int userId)
+    public async Task<IActionResult> GetUserNextFoodPage(int userId, bool isMorning = false)
     {
         var userProgress = await _unitOfWork.Repository<UserProgress>().GetByIdAsync(userId);
         if (userProgress == null)
@@ -66,17 +65,22 @@ public class FoodPageController : BaseController
             await _unitOfWork.SaveChangesAsync();
         }
 
-        var foodPage = await _unitOfWork.Repository<FoodPage>()
-            .FindBy(x=>x.Id > (userProgress.LastFoodId ?? 0))
-            .FirstOrDefaultAsync();
+        var foodPageQuery = isMorning
+            ? _unitOfWork.Repository<FoodPage>()
+                .FindBy(x => x.Id == (userProgress.MorningLastFoodId ?? 1) && 
+                             x.Category.Equals("Breakfast"))
+            : _unitOfWork.Repository<FoodPage>()
+                .FindBy(x => x.Id == (userProgress.EveningLastFoodId ?? 1)
+                             && x.Category.Equals("Main Course"));
+
+        var foodPage = await foodPageQuery.FirstOrDefaultAsync();
         if (foodPage == null) return NotFound();
 
-        
-        
+
         if (foodPage.VideoPath is null)
             foodPage.VideoPath = "Neuro-ascend-mobil-mvp/videos/SampleVideo";
-        
-        
+
+
         return Ok(foodPage);
     }
 

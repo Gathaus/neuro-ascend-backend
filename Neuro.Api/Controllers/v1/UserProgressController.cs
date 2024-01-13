@@ -60,7 +60,8 @@ namespace Neuro.Api.Controllers.v1
                 if (existingUserProgress == null)
                     return NotFound();
 
-                existingUserProgress.LastFoodId = userProgress.LastFoodId;
+                existingUserProgress.EveningLastFoodId = userProgress.EveningLastFoodId;
+                existingUserProgress.MorningLastFoodId = userProgress.MorningLastFoodId;
                 existingUserProgress.LastExerciseId = userProgress.LastExerciseId;
                 existingUserProgress.LastActivityId = userProgress.LastActivityId;
                 existingUserProgress.LastArticleId = userProgress.LastArticleId;
