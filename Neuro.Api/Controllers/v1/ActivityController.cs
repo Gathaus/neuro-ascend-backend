@@ -88,8 +88,15 @@ public class ActivityController : BaseController
         try
         {
             var userProgress = await _unitOfWork.Repository<UserProgress>().GetByIdAsync(userId);
-            if (userProgress == null) return NotFound();
-
+            if (userProgress == null)
+            {
+                userProgress = new UserProgress
+                {
+                    UserId = userId
+                };
+                await _unitOfWork.Repository<UserProgress>().InsertAsync(userProgress);
+                await _unitOfWork.SaveChangesAsync();
+            }
             var activity = await _unitOfWork.Repository<Activity>()
                 .FindBy(x=>x.Id > (userProgress.LastActivityId ?? 0))
                 .FirstOrDefaultAsync();

@@ -56,7 +56,15 @@ public class FoodPageController : BaseController
     public async Task<IActionResult> GetUserNextFoodPage(int userId)
     {
         var userProgress = await _unitOfWork.Repository<UserProgress>().GetByIdAsync(userId);
-        if (userProgress == null) return NotFound();
+        if (userProgress == null)
+        {
+            userProgress = new UserProgress
+            {
+                UserId = userId
+            };
+            await _unitOfWork.Repository<UserProgress>().InsertAsync(userProgress);
+            await _unitOfWork.SaveChangesAsync();
+        }
 
         var foodPage = await _unitOfWork.Repository<FoodPage>()
             .FindBy(x=>x.Id > (userProgress.LastFoodId ?? 0))

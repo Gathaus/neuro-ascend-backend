@@ -103,8 +103,16 @@ public class ExerciseController : BaseController
         try
         {
             var userProgress = await _unitOfWork.Repository<UserProgress>().GetByIdAsync(userId);
-            if (userProgress == null) return NotFound();
-
+            if (userProgress == null)
+            {
+                userProgress = new UserProgress
+                {
+                    UserId = userId
+                };
+                await _unitOfWork.Repository<UserProgress>().InsertAsync(userProgress);
+                await _unitOfWork.SaveChangesAsync();
+            }
+            
             var exercise = await _unitOfWork.Repository<Exercise>()
                 .FindBy(x => x.Id > (userProgress.LastExerciseId ?? 0))
                 .FirstOrDefaultAsync();
