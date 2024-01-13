@@ -74,7 +74,7 @@ public class AuthController : BaseController
             var result = await _unitOfWork.SaveChangesAsync();
             if (result > 0)
             {
-                return Ok(new {Username = user.Username, Email = user.Email,IsSuccess = true, Message = "Register Success"});
+                return Ok(new {Id=user.Id,Username = user.Username, Email = user.Email,IsSuccess = true, Message = "Register Success"});
             }
 
             return BadRequest( new {IsSuccess = false, Message = "Register Failed"});
