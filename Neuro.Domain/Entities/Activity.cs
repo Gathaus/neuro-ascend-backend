@@ -11,24 +11,24 @@ public class Activity : BaseEntity<int>
 
     public string? ImagePath { get; set; }
 
-    public List<AlzheimerStageEnum> AlzheimerLevel { get; set; }
+    public List<AlzheimerStageEnum>? AlzheimerLevel { get; set; }
 
-    public string RiskGroup { get; set; }
+    public string? RiskGroup { get; set; }
 
-    public List<string> Materials { get; set; }
+    public List<string>? Materials { get; set; }
 
   
-    public List<string> Steps { get; set; }
+    public List<string>? Steps { get; set; }
 
 
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
-    public List<string> Warnings { get; set; }
+    public List<string>? Warnings { get; set; }
 
-    public List<string> Suggestions { get; set; }
+    public List<string>? Suggestions { get; set; }
 
-    public List<string> Benefits { get; set; }
+    public List<string>? Benefits { get; set; }
     
-    public List<string> ActivityImagePaths { get; set; }
+    public List<string>? ActivityImagePaths { get; set; }
 }
 

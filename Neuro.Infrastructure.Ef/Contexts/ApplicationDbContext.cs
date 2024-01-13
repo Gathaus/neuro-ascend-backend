@@ -29,6 +29,7 @@ namespace Neuro.Infrastructure.Ef.Contexts;
         public DbSet<MedicineUser> MedicineUsers { get; set; }
         public DbSet<UserMood> UserMoods { get; set; }
         public DbSet<UserMedicine> UserMedicines { get; set; }
+        public DbSet<UserProgress> UserProgresses { get; set; }
         #endregion
 
         #region Methods

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Neuro.Infrastructure.Ef.Contexts;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Neuro.Infrastructure.Ef.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240111210613_InitialCreate123123")]
+    partial class InitialCreate123123
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -228,21 +231,26 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<List<string>>("ActivityImagePaths")
+                        .IsRequired()
                         .HasColumnType("text[]");
 
                     b.Property<byte[]>("AlzheimerLevel")
+                        .IsRequired()
                         .HasColumnType("smallint[]");
 
                     b.Property<List<string>>("Benefits")
+                        .IsRequired()
                         .HasColumnType("text[]");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ImagePath")
                         .HasColumnType("text");
 
                     b.Property<List<string>>("Materials")
+                        .IsRequired()
                         .HasColumnType("text[]");
 
                     b.Property<string>("Name")
@@ -251,15 +259,19 @@ namespace Neuro.Infrastructure.Ef.Migrations
                         .HasColumnType("character varying(200)");
 
                     b.Property<string>("RiskGroup")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<List<string>>("Steps")
+                        .IsRequired()
                         .HasColumnType("text[]");
 
                     b.Property<List<string>>("Suggestions")
+                        .IsRequired()
                         .HasColumnType("text[]");
 
                     b.Property<List<string>>("Warnings")
+                        .IsRequired()
                         .HasColumnType("text[]");
 
                     b.HasKey("Id");
@@ -311,6 +323,7 @@ namespace Neuro.Infrastructure.Ef.Migrations
                         .HasColumnType("text[]");
 
                     b.Property<string>("AreasImagePath")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("AverageDuration")
@@ -673,36 +686,6 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.ToTable("UserMoods");
                 });
 
-            modelBuilder.Entity("Neuro.Domain.Entities.UserProgress", b =>
-                {
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("LastActivityId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("LastArticleId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("LastExerciseId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("LastFoodId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("UserId");
-
-                    b.HasIndex("LastActivityId");
-
-                    b.HasIndex("LastArticleId");
-
-                    b.HasIndex("LastExerciseId");
-
-                    b.HasIndex("LastFoodId");
-
-                    b.ToTable("UserProgresses");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -779,41 +762,6 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.Navigation("Exercise");
 
                     b.Navigation("Food");
-                });
-
-            modelBuilder.Entity("Neuro.Domain.Entities.UserProgress", b =>
-                {
-                    b.HasOne("Neuro.Domain.Entities.Activity", "Activity")
-                        .WithMany()
-                        .HasForeignKey("LastActivityId");
-
-                    b.HasOne("Neuro.Domain.Entities.Article", "Article")
-                        .WithMany()
-                        .HasForeignKey("LastArticleId");
-
-                    b.HasOne("Neuro.Domain.Entities.Exercise", "Exercise")
-                        .WithMany()
-                        .HasForeignKey("LastExerciseId");
-
-                    b.HasOne("Neuro.Domain.Entities.FoodPage", "Food")
-                        .WithMany()
-                        .HasForeignKey("LastFoodId");
-
-                    b.HasOne("Neuro.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Activity");
-
-                    b.Navigation("Article");
-
-                    b.Navigation("Exercise");
-
-                    b.Navigation("Food");
-
-                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }
