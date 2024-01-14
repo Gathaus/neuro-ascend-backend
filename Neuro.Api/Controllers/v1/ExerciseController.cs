@@ -27,12 +27,12 @@ public class ExerciseController : BaseController
         {
             await _unitOfWork.Repository<Exercise>().InsertAsync(exercise);
             await _unitOfWork.SaveChangesAsync();
-            return Ok(new { IsSuccess = true, Message = "Exercise created successfully." });
+            return Ok(new {IsSuccess = true, Message = "Exercise created successfully."});
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BadRequest(new { IsSuccess = false, Message = "Failed to create exercise." });
+            return BadRequest(new {IsSuccess = false, Message = "Failed to create exercise."});
         }
     }
 
@@ -50,12 +50,12 @@ public class ExerciseController : BaseController
             }
 
 
-            return NotFound(new { IsSuccess = false, Message = "Exercise not found." });
+            return NotFound(new {IsSuccess = false, Message = "Exercise not found."});
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BadRequest(new { IsSuccess = false, Message = "Failed to retrieve exercise." });
+            return BadRequest(new {IsSuccess = false, Message = "Failed to retrieve exercise."});
         }
     }
 
@@ -71,13 +71,13 @@ public class ExerciseController : BaseController
                 if (exercise.GifPath is null)
                     exercise.GifPath = "Neuro-ascend-mobil-mvp/images/photo.jpg";
             }
-            
+
             return Ok(exercises);
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BadRequest(new { IsSuccess = false, Message = "Failed to retrieve exercises." });
+            return BadRequest(new {IsSuccess = false, Message = "Failed to retrieve exercises."});
         }
     }
 
@@ -88,32 +88,41 @@ public class ExerciseController : BaseController
         {
             _unitOfWork.Repository<Exercise>().Update(exercise);
             await _unitOfWork.SaveChangesAsync();
-            return Ok(new { IsSuccess = true, Message = "Exercise updated successfully." });
+            return Ok(new {IsSuccess = true, Message = "Exercise updated successfully."});
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BadRequest(new { IsSuccess = false, Message = "Failed to update exercise." });
+            return BadRequest(new {IsSuccess = false, Message = "Failed to update exercise."});
         }
     }
-    
+
     [HttpGet("GetUserNextExercise/{userId}")]
     public async Task<IActionResult> GetUserNextExercise(int userId)
     {
         try
         {
-                    var userProgress = await _unitOfWork.Repository<UserProgress>().FindBy(x=>x.UserId==userId).FirstOrDefaultAsync();
+            var userProgress = await _unitOfWork.Repository<UserProgress>().FindBy(x => x.UserId == userId)
+                .FirstOrDefaultAsync();
 
             if (userProgress == null)
             {
                 userProgress = new UserProgress
                 {
-                    UserId = userId
+                    UserId = userId,
+                    EveningLastFoodId = _unitOfWork.Repository<FoodPage>().FindBy(x => x.Category.Equals("Main Course"))
+                        .Min(x => x.Id),
+                    MorningLastFoodId = _unitOfWork.Repository<FoodPage>().FindBy(x => x.Category.Equals("Breakfast"))
+                        .Min(x => x.Id),
+                    LastExerciseId = _unitOfWork.Repository<Activity>().FindBy().Min(x => x.Id),
+                    LastActivityId = _unitOfWork.Repository<Activity>().FindBy().Min(x => x.Id),
+                    LastArticleId = _unitOfWork.Repository<Article>().FindBy().Min(x => x.Id)
                 };
+
                 await _unitOfWork.Repository<UserProgress>().InsertAsync(userProgress);
                 await _unitOfWork.SaveChangesAsync();
             }
-            
+
             var exercise = await _unitOfWork.Repository<Exercise>()
                 .FindBy(x => x.Id > (userProgress.LastExerciseId ?? 0))
                 .FirstOrDefaultAsync();
@@ -127,7 +136,7 @@ public class ExerciseController : BaseController
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BadRequest(new { IsSuccess = false, Message = "Failed to retrieve exercise." });
+            return BadRequest(new {IsSuccess = false, Message = "Failed to retrieve exercise."});
         }
     }
 
@@ -141,15 +150,15 @@ public class ExerciseController : BaseController
             {
                 _unitOfWork.Repository<Exercise>().Delete(exercise);
                 await _unitOfWork.SaveChangesAsync();
-                return Ok(new { IsSuccess = true, Message = "Exercise deleted successfully." });
+                return Ok(new {IsSuccess = true, Message = "Exercise deleted successfully."});
             }
 
-            return NotFound(new { IsSuccess = false, Message = "Exercise not found." });
+            return NotFound(new {IsSuccess = false, Message = "Exercise not found."});
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return BadRequest(new { IsSuccess = false, Message = "Failed to delete exercise." });
+            return BadRequest(new {IsSuccess = false, Message = "Failed to delete exercise."});
         }
     }
 }

@@ -89,15 +89,23 @@ public class ActivityController : BaseController
         {
                     var userProgress = await _unitOfWork.Repository<UserProgress>().FindBy(x=>x.UserId==userId).FirstOrDefaultAsync();
 
-            if (userProgress == null)
-            {
-                userProgress = new UserProgress
-                {
-                    UserId = userId
-                };
-                await _unitOfWork.Repository<UserProgress>().InsertAsync(userProgress);
-                await _unitOfWork.SaveChangesAsync();
-            }
+                    if (userProgress == null)
+                    {
+                        userProgress = new UserProgress
+                        {
+                            UserId = userId,
+                            EveningLastFoodId = _unitOfWork.Repository<FoodPage>()
+                                .FindBy(x => x.Category.Equals("Main Course")).Min(x => x.Id),
+                            MorningLastFoodId = _unitOfWork.Repository<FoodPage>()
+                                .FindBy(x => x.Category.Equals("Breakfast")).Min(x => x.Id),
+                            LastExerciseId = _unitOfWork.Repository<Activity>().FindBy().Min(x => x.Id),
+                            LastActivityId = _unitOfWork.Repository<Activity>().FindBy().Min(x => x.Id),
+                            LastArticleId = _unitOfWork.Repository<Article>().FindBy().Min(x => x.Id)
+                        };
+
+                        await _unitOfWork.Repository<UserProgress>().InsertAsync(userProgress);
+                        await _unitOfWork.SaveChangesAsync();
+                    }
             var activity = await _unitOfWork.Repository<Activity>()
                 .FindBy(x=>x.Id > (userProgress.LastActivityId ?? 0))
                 .FirstOrDefaultAsync();
