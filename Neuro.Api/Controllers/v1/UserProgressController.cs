@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Neuro.Domain.Entities; 
+using Neuro.Domain.Entities;
 using Neuro.Domain.UnitOfWork;
 using System;
 using System.Threading.Tasks;
+using Neuro.Api.Models;
 
 namespace Neuro.Api.Controllers.v1
 {
@@ -36,7 +37,8 @@ namespace Neuro.Api.Controllers.v1
         [HttpGet("Get/{userId}")]
         public async Task<IActionResult> GetUserProgress(int userId)
         {
-                    var userProgress = await _unitOfWork.Repository<UserProgress>().FindBy(x=>x.UserId==userId).FirstOrDefaultAsync();
+            var userProgress = await _unitOfWork.Repository<UserProgress>().FindBy(x => x.UserId == userId)
+                .FirstOrDefaultAsync();
 
 
             if (userProgress == null)
@@ -53,19 +55,28 @@ namespace Neuro.Api.Controllers.v1
         }
 
         [HttpPut("Update/{userId}")]
-        public async Task<IActionResult> UpdateUserProgress(int userId, [FromBody] UserProgress userProgress)
+        public async Task<IActionResult> UpdateUserProgress(int userId, [FromBody] UserProgressDto userProgress)
         {
             try
             {
-                var existingUserProgress = await _unitOfWork.Repository<UserProgress>().GetByIdAsync(userId);
+                var existingUserProgress = await _unitOfWork.Repository<UserProgress>().FindBy(x=>x.UserId == userId).FirstOrDefaultAsync();
                 if (existingUserProgress == null)
                     return NotFound();
 
-                existingUserProgress.EveningLastFoodId = userProgress.EveningLastFoodId;
-                existingUserProgress.MorningLastFoodId = userProgress.MorningLastFoodId;
-                existingUserProgress.LastExerciseId = userProgress.LastExerciseId;
-                existingUserProgress.LastActivityId = userProgress.LastActivityId;
-                existingUserProgress.LastArticleId = userProgress.LastArticleId;
+                existingUserProgress.EveningLastFoodId = userProgress.EveningLastFoodId 
+                                                         ?? existingUserProgress.EveningLastFoodId;
+                
+                existingUserProgress.MorningLastFoodId = userProgress.MorningLastFoodId 
+                                                         ?? existingUserProgress.MorningLastFoodId;
+                
+                existingUserProgress.LastExerciseId = userProgress.LastExerciseId 
+                                                      ?? existingUserProgress.LastExerciseId;
+                
+                existingUserProgress.LastActivityId = userProgress.LastActivityId 
+                                                      ?? existingUserProgress.LastActivityId;
+                
+                existingUserProgress.LastArticleId = userProgress.LastArticleId 
+                                                     ?? existingUserProgress.LastArticleId;
 
                 _unitOfWork.Repository<UserProgress>().Update(existingUserProgress);
                 await _unitOfWork.SaveChangesAsync();
@@ -83,7 +94,8 @@ namespace Neuro.Api.Controllers.v1
         {
             try
             {
-                        var userProgress = await _unitOfWork.Repository<UserProgress>().FindBy(x=>x.UserId==userId).FirstOrDefaultAsync();
+                var userProgress = await _unitOfWork.Repository<UserProgress>().FindBy(x => x.UserId == userId)
+                    .FirstOrDefaultAsync();
 
                 if (userProgress == null)
                     return NotFound();
