@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Neuro.Application.Base.Service;
+using Neuro.Application.Managers.Abstract;
+using Neuro.Application.Managers.Concrete;
 
 namespace Neuro.Application;
 
@@ -11,6 +13,7 @@ public static class DependencyInjection
         InjectDoubleBusinessServices(services);
         InjectDoubleFilterServices(services);
         InjectDoubleDynamicServices(services);
+        services.AddSingleton<INotificationManager, NotificationManager>();
 
         return services;
     }

@@ -33,6 +33,7 @@ public class User : BaseEntity<int>
     public List<WeekDaysEnum> SelectedDays { get; set; } // Veri tipi ve isim değişti (MedicationDays)
     public string Time { get; set; } // ReminderTimeStr ile aynı veri
     public string Usage { get; set; } // HowToUse ile aynı veri
+    public string? FirebaseToken { get; set; }
 
 
 }

@@ -108,6 +108,7 @@ public class ActivityController : BaseController
                     }
             var activity = await _unitOfWork.Repository<Activity>()
                 .FindBy(x=>x.Id > (userProgress.LastActivityId ?? 0))
+                .OrderBy(x=>x.Id)
                 .FirstOrDefaultAsync();
             if (activity == null) return NotFound();
 

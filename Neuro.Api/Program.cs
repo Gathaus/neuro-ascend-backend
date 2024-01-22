@@ -84,6 +84,7 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructureEf(postgreServerConnectionString,
     postgreServerConnectionString);
 builder.Services.AddInfrastructure();
+
 builder.Services.AddScoped<StorageManager>(provider =>
 {
     var accessKey = "DO007U98MQTMT2RLVHKE";

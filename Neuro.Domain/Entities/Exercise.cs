@@ -6,6 +6,7 @@ public class Exercise : BaseEntity<int>
 {
     public string Name { get; set; }
     public string AverageDuration { get; set; }
+    public int? AverageDurationInSeconds { get; set; }
     public string? GifPath { get; set; }
     public List<string> Areas { get; set; }
     public string?AreasImagePath { get; set; }

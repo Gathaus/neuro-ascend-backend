@@ -81,12 +81,15 @@ public class FoodPageController : BaseController
 
         var foodPageQuery = isMorning
             ? _unitOfWork.Repository<FoodPage>()
-                .FindBy(x => x.Id > (userProgress.MorningLastFoodId ?? 0) && 
+                .FindBy(x => x.Id > (userProgress.MorningLastFoodId ?? 0) &&
                              x.Category.Equals("Breakfast"))
+                .OrderBy(x => x.Id)
+
             : _unitOfWork.Repository<FoodPage>()
                 .FindBy(x => x.Id > (userProgress.EveningLastFoodId ?? 0)
-                             && x.Category.Equals("Main Course"));
-        
+                             && x.Category.Equals("Main Course"))
+                .OrderBy(x => x.Id);
+
         
         
         var foodPage = await foodPageQuery.FirstOrDefaultAsync();

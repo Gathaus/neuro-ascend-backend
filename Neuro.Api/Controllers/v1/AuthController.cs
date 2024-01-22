@@ -59,7 +59,9 @@ public class AuthController : BaseController
                 SelectedDays = model.SelectedDays,
                 Time = model.Time,
                 Usage = model.Usage,
-                ImageUrl = model.ImageUrl
+                ImageUrl = model.ImageUrl,
+                FirebaseToken = model.FirebaseToken
+                
             };
             
             var userFromDb = _unitOfWork.Repository<User>().FindBy(x => x.Email.ToLower().Equals(model.Email.ToLower()))
@@ -99,6 +101,13 @@ public class AuthController : BaseController
 
             if (user != null)
             {
+                if(model.FirebaseToken != null)
+                {
+                    user.FirebaseToken = model.FirebaseToken;
+                    _unitOfWork.Repository<User>().Update(user);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+                
                 var medicineDays = await _unitOfWork.Repository<MedicineUser>()
                     .FindBy(x => x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim())).ToListAsync();
                 var userMood = await _unitOfWork.Repository<UserMood>()
