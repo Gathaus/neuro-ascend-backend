@@ -110,6 +110,7 @@ public class AccountController : ControllerBase
     public class GoogleToken
     {
         public string IdToken { get; set; }
+        public string? FirebaseToken { get; set; }
     }
 
     [HttpPost("signin-google")]
@@ -128,6 +129,13 @@ public class AccountController : ControllerBase
 
             if (user != null)
             {
+                if (model.FirebaseToken != null)
+                {
+                    user.FirebaseToken = model.FirebaseToken;
+                    _unitOfWork.Repository<User>().Update(user);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+                
                 var medicineDays = await _unitOfWork.Repository<MedicineUser>()
                     .FindBy(x => x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim())).ToListAsync();
                 var userMood = await _unitOfWork.Repository<UserMood>()
