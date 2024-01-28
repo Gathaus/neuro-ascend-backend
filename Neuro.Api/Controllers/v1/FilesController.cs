@@ -40,8 +40,10 @@ namespace Neuro.Api.Controllers.v1
             using (var stream = model.File.OpenReadStream())
             {
                 await _logger.LogInfo("File upload started");
-                await _storageManager.UploadFileAsync(model.FilePath, stream);
+                var response = await _storageManager.UploadFileAsync(model.FilePath, stream);
+                await _logger.LogInfo(response.HttpStatusCode + " "+ response.ResponseMetadata.ChecksumValidationStatus + " " + response.ToString());
             }
+            
             await _logger.LogInfo("File upload completed");
 
             return Ok(new{FilePath=model.FilePath,IsSuccess=true});

@@ -108,7 +108,7 @@ if (builder.Environment.IsDevelopment() )
     // || builder.Environment.IsStaging() || builder.Environment.IsProduction()
 
 }
-builder.Services.AddHangfireServices(builder.Configuration.GetConnectionString("PostgreServer"));
+// builder.Services.AddHangfireServices(builder.Configuration.GetConnectionString("PostgreServer"));
 
 
 var app = builder.Build();
@@ -120,8 +120,8 @@ if (app.Environment.IsDevelopment() )
     // || app.Environment.IsStaging() || app.Environment.IsProduction()
 
 }
-app.UseCustomHangfireDashboard(app.Services);
-HangfireConfiguration.RestartProcessingJobsBeforeStartingServer(app.Services);
+// app.UseCustomHangfireDashboard(app.Services);
+// HangfireConfiguration.RestartProcessingJobsBeforeStartingServer(app.Services);
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseHttpsRedirection();

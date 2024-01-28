@@ -8,7 +8,6 @@ namespace Neuro.Api.Managers
     {
         private readonly IAmazonS3 _s3Client;
         private const string BucketName = "neuro-ascend-blob-newstorage";
-        private Logger? Logger;
 
 
         public StorageManager(string accessKey, string secretKey)
@@ -19,7 +18,6 @@ namespace Neuro.Api.Managers
                 ForcePathStyle = true
             });
 
-            Logger = LogManager.GetLogger("default");
         }
 
         public StorageManager(AmazonS3Config accessKey)
@@ -27,7 +25,7 @@ namespace Neuro.Api.Managers
             throw new NotImplementedException();
         }
 
-        public async Task UploadFileAsync(string filePath, Stream fileStream)
+        public async Task<PutObjectResponse> UploadFileAsync(string filePath, Stream fileStream)
         {
             
             var putRequest = new PutObjectRequest
@@ -38,7 +36,7 @@ namespace Neuro.Api.Managers
             };
 
             var response = await _s3Client.PutObjectAsync(putRequest);
-            Logger?.Info(response.ToString());
+            return response;
         }
 
 
