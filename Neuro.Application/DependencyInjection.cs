@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Neuro.Application.BackgroundJobs;
 using Neuro.Application.Base.Service;
 using Neuro.Application.Managers.Abstract;
 using Neuro.Application.Managers.Concrete;
@@ -14,6 +15,8 @@ public static class DependencyInjection
         InjectDoubleFilterServices(services);
         InjectDoubleDynamicServices(services);
         services.AddSingleton<INotificationManager, NotificationManager>();
+        services.AddScoped<TestJob>();
+
 
         return services;
     }

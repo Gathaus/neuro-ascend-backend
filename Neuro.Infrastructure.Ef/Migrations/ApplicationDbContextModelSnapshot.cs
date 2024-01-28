@@ -325,6 +325,32 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.ToTable("Articles");
                 });
 
+            modelBuilder.Entity("Neuro.Domain.Entities.Disease", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Diseases");
+                });
+
             modelBuilder.Entity("Neuro.Domain.Entities.Exercise", b =>
                 {
                     b.Property<int>("Id")
@@ -570,19 +596,8 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.Property<int>("Age")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Amount")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("BeginDay")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("BeginMonth")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateOnly>("BeginningDate")
-                        .HasColumnType("date");
+                    b.Property<byte>("AlzheimerStage")
+                        .HasColumnType("smallint");
 
                     b.Property<byte>("BloodType")
                         .HasColumnType("smallint");
@@ -595,24 +610,7 @@ namespace Neuro.Infrastructure.Ef.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<byte>("DiseaseLevel")
-                        .HasColumnType("smallint");
-
-                    b.Property<string>("DiseaseTerm")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateOnly>("EndDate")
-                        .HasColumnType("date");
-
-                    b.Property<int>("EndDay")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("EndMonth")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -640,26 +638,7 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.Property<string>("Password")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset>("ReminderTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<byte[]>("SelectedDays")
-                        .IsRequired()
-                        .HasColumnType("smallint[]");
-
-                    b.Property<string>("Time")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Usage")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Username")
-                        .HasColumnType("text");
-
-                    b.Property<string>("View")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("WantVirtualPet")
@@ -678,6 +657,9 @@ namespace Neuro.Infrastructure.Ef.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<DateOnly>("BeginningDate")
+                        .HasColumnType("date");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -686,6 +668,9 @@ namespace Neuro.Infrastructure.Ef.Migrations
 
                     b.Property<string>("Email")
                         .HasColumnType("text");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
 
                     b.Property<int?>("MedicationId")
                         .HasColumnType("integer");
@@ -696,9 +681,16 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.Property<int>("ModifiedBy")
                         .HasColumnType("integer");
 
+                    b.Property<int>("PillNumber")
+                        .HasColumnType("integer");
+
                     b.Property<byte[]>("Timestamp")
                         .IsRequired()
                         .HasColumnType("bytea");
+
+                    b.Property<string>("Usage")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int?>("UserId")
                         .HasColumnType("integer");
@@ -855,6 +847,13 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.Navigation("Activity");
                 });
 
+            modelBuilder.Entity("Neuro.Domain.Entities.Disease", b =>
+                {
+                    b.HasOne("Neuro.Domain.Entities.User", null)
+                        .WithMany("Diseases")
+                        .HasForeignKey("UserId");
+                });
+
             modelBuilder.Entity("Neuro.Domain.Entities.MedicationDay", b =>
                 {
                     b.HasOne("Neuro.Domain.Entities.UserMedicine", "UserMedicine")
@@ -911,7 +910,7 @@ namespace Neuro.Infrastructure.Ef.Migrations
                         .HasForeignKey("MedicationId");
 
                     b.HasOne("Neuro.Domain.Entities.User", "User")
-                        .WithMany()
+                        .WithMany("UserMedicines")
                         .HasForeignKey("UserId");
 
                     b.Navigation("Medication");
@@ -962,6 +961,13 @@ namespace Neuro.Infrastructure.Ef.Migrations
 
             modelBuilder.Entity("Neuro.Domain.Entities.Medication", b =>
                 {
+                    b.Navigation("UserMedicines");
+                });
+
+            modelBuilder.Entity("Neuro.Domain.Entities.User", b =>
+                {
+                    b.Navigation("Diseases");
+
                     b.Navigation("UserMedicines");
                 });
 

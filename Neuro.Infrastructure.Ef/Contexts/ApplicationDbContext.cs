@@ -33,6 +33,7 @@ namespace Neuro.Infrastructure.Ef.Contexts;
         public DbSet<TimeOfDay> TimesOfDay { get; set; }
         public DbSet<UserMedicine> UserMedicines { get; set; }
         public DbSet<ActivityImageDescription> ActivityImageDescriptions { get; set; }
+        public DbSet<Disease> Diseases { get; set; }
         #endregion
 
         #region Methods

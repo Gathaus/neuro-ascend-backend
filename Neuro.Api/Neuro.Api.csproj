@@ -36,6 +36,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Neuro.Application\Neuro.Application.csproj" />
       <ProjectReference Include="..\Neuro.Infrastructure.Ef\Neuro.Infrastructure.Ef.csproj" />
+      <ProjectReference Include="..\Neuro.Infrastructure.Hangfire\Neuro.Infrastructure.Hangfire.csproj" />
       <ProjectReference Include="..\Neuro.Infrastructure\Neuro.Infrastructure.csproj" />
     </ItemGroup>
 

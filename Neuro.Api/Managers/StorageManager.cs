@@ -1,5 +1,6 @@
 using Amazon.S3;
 using Amazon.S3.Model;
+using NLog;
 
 namespace Neuro.Api.Managers
 {
@@ -7,6 +8,8 @@ namespace Neuro.Api.Managers
     {
         private readonly IAmazonS3 _s3Client;
         private const string BucketName = "neuro-ascend-blob-newstorage";
+        private Logger? Logger;
+
 
         public StorageManager(string accessKey, string secretKey)
         {
@@ -15,6 +18,8 @@ namespace Neuro.Api.Managers
                 ServiceURL = "https://nyc3.digitaloceanspaces.com",
                 ForcePathStyle = true
             });
+
+            Logger = LogManager.GetLogger("default");
         }
 
         public StorageManager(AmazonS3Config accessKey)
@@ -24,6 +29,7 @@ namespace Neuro.Api.Managers
 
         public async Task UploadFileAsync(string filePath, Stream fileStream)
         {
+            
             var putRequest = new PutObjectRequest
             {
                 InputStream = fileStream,
@@ -31,7 +37,8 @@ namespace Neuro.Api.Managers
                 Key = filePath 
             };
 
-            await _s3Client.PutObjectAsync(putRequest);
+            var response = await _s3Client.PutObjectAsync(putRequest);
+            Logger?.Info(response.ToString());
         }
 
 

@@ -29,66 +29,65 @@ public class AuthController : BaseController
     [HttpPost("Register")]
     public async Task<IActionResult> Register([FromBody] RegisterModel model)
     {
-        try
+        if (model == null)
         {
-            var user = new User
+            return BadRequest(new {IsSuccess = false, Message = "Invalid model"});
+        }
+
+        var existingUser =
+            await _unitOfWork.Repository<User>().FindBy(x => x.Email == model.Email).FirstOrDefaultAsync();
+        if (existingUser != null)
+        {
+            return BadRequest(new {IsSuccess = false, Message = "User already exists"});
+        }
+
+        var user = new User
+        {
+            Username = model.Username,
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+            Email = model.Email,
+            Password = model.Password, // Şifreyi hashleme işlemi uygulamanız önerilir.
+            BloodType = model.BloodType,
+            Age = model.Age,
+            Address = model.Address,
+            ImageUrl = model.ImageUrl,
+            AlzheimerStage = model.AlzheimerStage,
+            HavePet = model.HavePet,
+            WantVirtualPet = model.WantVirtualPet,
+            CountryCode = model.CountryCode,
+            CountryCallingCode = model.CountryCallingCode,
+            MobileNumber = model.MobileNumber,
+            FirebaseToken = model.FirebaseToken,
+            Diseases = model.Diseases.Select(d => new Disease {Name = d}).ToList()
+        };
+
+        foreach (var med in model.Medications)
+        {
+            var userMedicine = new UserMedicine
             {
-                Username = model.Username,
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                Email = model.Email,
-                BloodType = model.BloodType,
-                Age = model.Age,
-                Address = model.Address,
-                DiseaseTerm = model.DiseaseTerm,
-                DiseaseLevel = model.DiseaseLevel,
-                View = model.View,
-                ReminderTime = model.ReminderTime,
-                BeginningDate = model.BeginningDate,
-                EndDate = model.EndDate,
-                HavePet = model.HavePet,
-                WantVirtualPet = model.WantVirtualPet,
-                CountryCode = model.CountryCode,
-                CountryCallingCode = model.CountryCallingCode,
-                MobileNumber = model.MobileNumber,
-                Amount = model.Amount,
-                BeginDay = model.BeginDay,
-                BeginMonth = model.BeginMonth,
-                EndDay = model.EndDay,
-                EndMonth = model.EndMonth,
-                SelectedDays = model.SelectedDays,
-                Time = model.Time,
-                Usage = model.Usage,
-                ImageUrl = model.ImageUrl,
-                FirebaseToken = model.FirebaseToken
-                
+                Usage = med.Usage,
+                PillNumber = med.PillNumber,
+                BeginningDate = med.BeginningDate,
+                EndDate = med.EndDate,
+                Days = med.MedicationDays.Select(d => new MedicationDay {DayOfWeek = d.DayOfWeek}).ToList(),
+                Times = med.MedicationTimes.Select(t => new TimeOfDay {Time = t.Time}).ToList(),
+                Medication = new Medication {Name = med.Name}
             };
-            
-            var userFromDb = _unitOfWork.Repository<User>().FindBy(x => x.Email.ToLower().Equals(model.Email.ToLower()))
-                .FirstOrDefault();
-            if (userFromDb != null)
-            {
-                return BadRequest(new {IsSuccess = false, Message = "User already exists"});
-            }
-
-
-            await _unitOfWork.Repository<User>().InsertAsync(user);
-            var result = await _unitOfWork.SaveChangesAsync();
-            if (result > 0)
-            {
-                return Ok(new {Id=user.Id,Username = user.Username, Email = user.Email,IsSuccess = true, Message = "Register Success"});
-            }
-
-            return BadRequest( new {IsSuccess = false, Message = "Register Failed"});
-
+            user.UserMedicines.Add(userMedicine);
         }
-        catch (Exception e)
+
+        await _unitOfWork.Repository<User>().InsertAsync(user);
+        var result = await _unitOfWork.SaveChangesAsync();
+
+        if (result > 0)
         {
-            Console.WriteLine(e);
-            throw;
+            return Ok(new {IsSuccess = true, Message = "Registration successful", UserId = user.Id});
         }
+
+        return BadRequest(new {IsSuccess = false, Message = "Registration failed"});
     }
-    
+
     [HttpPost("Login")]
     public async Task<IActionResult> Login([FromBody] LoginModel model)
     {
@@ -97,26 +96,30 @@ public class AuthController : BaseController
             var user = await _unitOfWork.Repository<User>()
                 .FindBy(x => x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()))
                 .FirstOrDefaultAsync();
-            
+
 
             if (user != null)
             {
-                if(model.FirebaseToken != null)
+                if (model.FirebaseToken != null)
                 {
                     user.FirebaseToken = model.FirebaseToken;
                     _unitOfWork.Repository<User>().Update(user);
                     await _unitOfWork.SaveChangesAsync();
                 }
-                
+
                 var medicineDays = await _unitOfWork.Repository<MedicationDay>()
                     .FindBy(x => x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()))
-                    .Select(x=>x.DayOfWeek)
+                    .Select(x => x.DayOfWeek)
                     .ToListAsync();
-                
+
                 var userMood = await _unitOfWork.Repository<UserMood>()
-                    .FindBy(x => (x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim())) 
-                                 && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date ).ToListAsync();
-                return Ok(new {User = user, MedicineDays = medicineDays,UserMood = userMood.FirstOrDefault()?.Mood.ToString() ?? "None", IsSuccess = true});
+                    .FindBy(x => (x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()))
+                                 && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
+                return Ok(new
+                {
+                    User = user, MedicineDays = medicineDays,
+                    UserMood = userMood.FirstOrDefault()?.Mood.ToString() ?? "None", IsSuccess = true
+                });
             }
 
             return BadRequest(new {IsSuccess = false, Message = "Login Failed"});

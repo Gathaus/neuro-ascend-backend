@@ -14,18 +14,25 @@ namespace Neuro.Application.Managers.Concrete
 
         public NotificationManager()
         {
-            var applicationRoot = new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "Neuro.Application")).FullName;
-            var configFilePath = Path.Combine(applicationRoot, "firebase-config-file.json");
-            
-            if (!File.Exists(configFilePath))
+            if (FirebaseApp.DefaultInstance == null)
             {
-                throw new FileNotFoundException("Firebase configuration file not found at the specified path.", configFilePath);
-            }
+                var applicationRoot = new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "Neuro.Application")).FullName;
+                var configFilePath = Path.Combine(applicationRoot, "firebase-config-file.json");
+                
+                if (!File.Exists(configFilePath))
+                {
+                    throw new FileNotFoundException("Firebase configuration file not found at the specified path.", configFilePath);
+                }
 
-            _firebaseApp = FirebaseApp.Create(new AppOptions()
+                _firebaseApp = FirebaseApp.Create(new AppOptions
+                {
+                    Credential = GoogleCredential.FromFile(configFilePath)
+                });
+            }
+            else
             {
-                Credential = GoogleCredential.FromFile(configFilePath),
-            });
+                _firebaseApp = FirebaseApp.DefaultInstance;
+            }
         }
 
         public async Task SendNotificationAsync(string token, string title, string body)

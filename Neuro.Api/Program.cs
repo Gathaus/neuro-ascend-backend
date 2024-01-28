@@ -2,6 +2,7 @@ using System.Text;
 using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 using Neuro.Api.Configurations;
 using Neuro.Api.Managers;
@@ -11,13 +12,15 @@ using Neuro.Infrastructure;
 using Neuro.Infrastructure.ApiDocumentation;
 using Neuro.Infrastructure.Ef;
 using Neuro.Infrastructure.Ef.Contexts;
+using Neuro.Infrastructure.Hangfire;
 using Neuro.Infrastructure.Logging;
 using Neuro.Infrastructure.MessageBus.Configuration;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
-
+try
+{
 // Configure Serilog
 // builder.Services.AddNeuroLogging(configuration.GetConnectionString("PostgreServer"));
 
@@ -100,14 +103,25 @@ builder.Services.AddNeuroSwagger();
 
 builder.Host.UseNeuroLogger();
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment() || app.Environment.IsStaging() || app.Environment.IsProduction())
+if (builder.Environment.IsDevelopment() )
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    // || builder.Environment.IsStaging() || builder.Environment.IsProduction()
+
 }
+builder.Services.AddHangfireServices(builder.Configuration.GetConnectionString("PostgreServer"));
+
+
+var app = builder.Build();
+app.UseSwagger();
+app.UseSwaggerUI();
+if (app.Environment.IsDevelopment() )
+{
+
+    // || app.Environment.IsStaging() || app.Environment.IsProduction()
+
+}
+app.UseCustomHangfireDashboard(app.Services);
+HangfireConfiguration.RestartProcessingJobsBeforeStartingServer(app.Services);
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseHttpsRedirection();
@@ -121,3 +135,28 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+}
+catch (Exception ex)
+{
+    var query = @"
+        INSERT INTO logs 
+        (userid, email, userfullname, ipaddress, deviceid, version, datetime, errorcode, level, caller, userfriendlymessage, exceptionmessage, exceptionsource, exceptionstacktrace, controller, action, url, httpmethod, requestjson, responsejson, companyid, innerexceptionid) 
+        VALUES 
+        (@UserId, @Email, @UserFullName, @IPAddress, @DeviceId, @Version, @DateTime, @ErrorCode, @Level, @Caller, @UserFriendlyMessage, @ExceptionMessage, @ExceptionSource, @ExceptionStackTrace, @Controller, @Action, @Url, @HttpMethod, @RequestJson, @ResponseJson, @CompanyId, @InnerExceptionId)";
+
+    using (var connection = new SqlConnection("Your_Connection_String"))
+    {
+        var command = new SqlCommand(query, connection);
+
+        // Parametrelerin atanması
+        command.Parameters.AddWithValue("@UserId",1);
+        command.Parameters.AddWithValue("@DateTime", DateTime.Now);
+        command.Parameters.AddWithValue("@ExceptionMessage", ex.Message);
+        command.Parameters.AddWithValue("@ExceptionStackTrace", ex.StackTrace);
+        command.Parameters.AddWithValue("@Level", "ERROR");
+
+        connection.Open();
+        command.ExecuteNonQuery();
+    }
+    throw;
+}

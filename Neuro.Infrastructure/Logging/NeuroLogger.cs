@@ -96,8 +96,14 @@ namespace Neuro.Infrastructure.Logging
 
             var neuroLogger = LogManager.GetLogger("default");
 
+            if (_httpContextAccessor == null || _httpContextAccessor.HttpContext == null)
+                return neuroLogger;
+            
             var routeData = _httpContextAccessor.HttpContext.Features.Get<IRouteValuesFeature>();
-
+            
+            if (routeData == null)
+                return neuroLogger;
+            
             var controller = routeData.RouteValues["controller"];
             var action = routeData.RouteValues["action"];
             var ip = _httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();

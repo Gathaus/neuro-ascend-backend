@@ -1,6 +1,7 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Neuro.Api.Managers;
+using Neuro.Domain.Logging;
 
 namespace Neuro.Api.Controllers.v1
 {
@@ -9,10 +10,13 @@ namespace Neuro.Api.Controllers.v1
     public class FilesController : BaseController
     {
         private readonly StorageManager _storageManager;
+        private INeuroLogger _logger;
 
-        public FilesController(StorageManager storageManager)
+
+        public FilesController(StorageManager storageManager, INeuroLogger logger)
         {
             _storageManager = storageManager;
+            _logger = logger;
         }
         
         public class FileModel
@@ -24,15 +28,21 @@ namespace Neuro.Api.Controllers.v1
         [HttpPost("upload")]
         public async Task<IActionResult> Upload([FromForm]FileModel model)
         {
+            await _logger.LogInfo("File upload started");
+
             if (model.File == null || model.File.Length == 0)
             {
+                await _logger.LogError(new Exception("File upload failed"), "File upload failed");
+                
                 return BadRequest("Dosya bulunamadı.");
             }
 
             using (var stream = model.File.OpenReadStream())
             {
+                await _logger.LogInfo("File upload started");
                 await _storageManager.UploadFileAsync(model.FilePath, stream);
             }
+            await _logger.LogInfo("File upload completed");
 
             return Ok(new{FilePath=model.FilePath,IsSuccess=true});
         }

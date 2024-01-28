@@ -52,34 +52,34 @@ public class AccountController : ControllerBase
         return BadRequest(result.Errors);
     }
 
-    // [HttpPost("addMedicine")]
-    public async Task<IActionResult> AddMedicine(MedicineModel model)
-    {
-        //TODO CHANGE THIS MEDICINE
-        // var data = await _unitOfWork.Repository<MedicineUser>().FindBy(x =>
-        //         x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()) && x.WeekDay == model.WeekDay)
-        //     .FirstOrDefaultAsync();
-        // if (data != null)
-        // {
-        //     return BadRequest("You already added medicine.");
-        // }
-        //
-        // //TODO CHANGE THIS MEDICINE
-        // var usermedicine = new MedicineUser()
-        // {
-        //     Email = model.Email,
-        //     WeekDay = model.WeekDay,
-        // };
-        //
-        // var result = await _unitOfWork.Repository<MedicineUser>().InsertAsync(usermedicine);
-        // var rows = await _unitOfWork.SaveChangesAsync();
-        // if (rows > 0)
-        // {
-        //     return Ok(new {IsSuccess = true});
-        // }
-
-        return BadRequest(new {IsSuccess = false});
-    }
+     // [HttpPost("addMedicine")]
+     // public async Task<IActionResult> AddMedicine(MedicineModel model)
+     // {
+     //    TODO CHANGE THIS MEDICINE
+     //     var data = await _unitOfWork.Repository<MedicineUser>().FindBy(x =>
+     //             x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()) && x.WeekDay == model.WeekDay)
+     //         .FirstOrDefaultAsync();
+     //     if (data != null)
+     //     {
+     //         return BadRequest("You already added medicine.");
+     //     }
+     //    
+     //     //TODO CHANGE THIS MEDICINE
+     //     var usermedicine = new MedicineUser()
+     //     {
+     //         Email = model.Email,
+     //         WeekDay = model.WeekDay,
+     //     };
+     //    
+     //     var result = await _unitOfWork.Repository<MedicineUser>().InsertAsync(usermedicine);
+     //     var rows = await _unitOfWork.SaveChangesAsync();
+     //     if (rows > 0)
+     //     {
+     //         return Ok(new {IsSuccess = true});
+     //     }
+     //
+     //     return BadRequest(new {IsSuccess = false});
+     // }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginModel model)
@@ -203,36 +203,36 @@ public class AccountController : ControllerBase
     }
 
     // [HttpPost("setUserMedicine")]
-    public async Task<IActionResult> SetUserMedicine([FromBody] UserMedicineRequest model)
-    {
-        if (model.UserId == null)
-        {
-            return BadRequest(new {IsSuccess = false});
-        }
-
-        var user = await _unitOfWork.Repository<User>()
-            .FindBy(x => x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()))
-            .FirstOrDefaultAsync();
-        if (user != null)
-        {
-            var userMedicine = new UserMedicine()
-            {
-                Email = model.Email,
-                // IsTaken = model.IsTaken,
-                CreatedAt = DateTimeOffset.UtcNow
-            };
-            await _unitOfWork.Repository<UserMedicine>().InsertAsync(userMedicine);
-            var rows = await _unitOfWork.SaveChangesAsync();
-            if (rows > 0)
-            {
-                return Ok(new {IsSuccess = true});
-            }
-
-            return BadRequest(new {IsSuccess = false});
-        }
-
-        return BadRequest(new {IsSuccess = false});
-    }
+    // public async Task<IActionResult> SetUserMedicine([FromBody] UserMedicineRequest model)
+    // {
+    //     if (model.UserId == null)
+    //     {
+    //         return BadRequest(new {IsSuccess = false});
+    //     }
+    //
+    //     var user = await _unitOfWork.Repository<User>()
+    //         .FindBy(x => x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()))
+    //         .FirstOrDefaultAsync();
+    //     if (user != null)
+    //     {
+    //         var userMedicine = new UserMedicine()
+    //         {
+    //             Email = model.Email,
+    //             IsTaken = model.IsTaken,
+    //             CreatedAt = DateTimeOffset.UtcNow
+    //         };
+    //         await _unitOfWork.Repository<UserMedicine>().InsertAsync(userMedicine);
+    //         var rows = await _unitOfWork.SaveChangesAsync();
+    //         if (rows > 0)
+    //         {
+    //             return Ok(new {IsSuccess = true});
+    //         }
+    //
+    //         return BadRequest(new {IsSuccess = false});
+    //     }
+    //
+    //     return BadRequest(new {IsSuccess = false});
+    // }
 
 
     [HttpPost("signin-google2")]

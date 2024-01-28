@@ -1,4 +1,4 @@
-namespace Neuro.BackgroundJobs.Attributes;
+namespace Neuro.Application.Attributes;
 
 [AttributeUsage(AttributeTargets.Method)]
 public class RecurringJobAttribute : Attribute
