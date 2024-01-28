@@ -1,5 +1,6 @@
 namespace Neuro.Domain.Entities.Enums;
 
+[Flags]
 public enum WeekDaysEnum : byte
 {
     

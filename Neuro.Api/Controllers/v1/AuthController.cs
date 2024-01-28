@@ -108,8 +108,11 @@ public class AuthController : BaseController
                     await _unitOfWork.SaveChangesAsync();
                 }
                 
-                var medicineDays = await _unitOfWork.Repository<MedicineUser>()
-                    .FindBy(x => x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim())).ToListAsync();
+                var medicineDays = await _unitOfWork.Repository<MedicationDay>()
+                    .FindBy(x => x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()))
+                    .Select(x=>x.DayOfWeek)
+                    .ToListAsync();
+                
                 var userMood = await _unitOfWork.Repository<UserMood>()
                     .FindBy(x => (x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim())) 
                                  && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date ).ToListAsync();

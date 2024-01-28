@@ -26,10 +26,12 @@ namespace Neuro.Infrastructure.Ef.Contexts;
         public DbSet<FoodPage> FoodPages { get; set; }
         public DbSet<Article> Articles { get; set; }
         public DbSet<Activity> Activities { get; set; }
-        public DbSet<MedicineUser> MedicineUsers { get; set; }
         public DbSet<UserMood> UserMoods { get; set; }
-        public DbSet<UserMedicine> UserMedicines { get; set; }
         public DbSet<UserProgress> UserProgresses { get; set; }
+        public DbSet<Medication> Medications { get; set; }
+        public DbSet<MedicationDay> MedicationDays { get; set; }
+        public DbSet<TimeOfDay> TimesOfDay { get; set; }
+        public DbSet<UserMedicine> UserMedicines { get; set; }
         public DbSet<ActivityImageDescription> ActivityImageDescriptions { get; set; }
         #endregion
 

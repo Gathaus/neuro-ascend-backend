@@ -52,29 +52,31 @@ public class AccountController : ControllerBase
         return BadRequest(result.Errors);
     }
 
-    [HttpPost("addMedicine")]
+    // [HttpPost("addMedicine")]
     public async Task<IActionResult> AddMedicine(MedicineModel model)
     {
-        var data = await _unitOfWork.Repository<MedicineUser>().FindBy(x =>
-                x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()) && x.WeekDay == model.WeekDay)
-            .FirstOrDefaultAsync();
-        if (data != null)
-        {
-            return BadRequest("You already added medicine.");
-        }
-
-        var usermedicine = new MedicineUser()
-        {
-            Email = model.Email,
-            WeekDay = model.WeekDay,
-        };
-
-        var result = await _unitOfWork.Repository<MedicineUser>().InsertAsync(usermedicine);
-        var rows = await _unitOfWork.SaveChangesAsync();
-        if (rows > 0)
-        {
-            return Ok(new {IsSuccess = true});
-        }
+        //TODO CHANGE THIS MEDICINE
+        // var data = await _unitOfWork.Repository<MedicineUser>().FindBy(x =>
+        //         x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()) && x.WeekDay == model.WeekDay)
+        //     .FirstOrDefaultAsync();
+        // if (data != null)
+        // {
+        //     return BadRequest("You already added medicine.");
+        // }
+        //
+        // //TODO CHANGE THIS MEDICINE
+        // var usermedicine = new MedicineUser()
+        // {
+        //     Email = model.Email,
+        //     WeekDay = model.WeekDay,
+        // };
+        //
+        // var result = await _unitOfWork.Repository<MedicineUser>().InsertAsync(usermedicine);
+        // var rows = await _unitOfWork.SaveChangesAsync();
+        // if (rows > 0)
+        // {
+        //     return Ok(new {IsSuccess = true});
+        // }
 
         return BadRequest(new {IsSuccess = false});
     }
@@ -136,8 +138,11 @@ public class AccountController : ControllerBase
                     await _unitOfWork.SaveChangesAsync();
                 }
                 
-                var medicineDays = await _unitOfWork.Repository<MedicineUser>()
-                    .FindBy(x => x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim())).ToListAsync();
+                var medicineDays = await _unitOfWork.Repository<MedicationDay>()
+                    .FindBy(x => x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
+                    .Select(x=>x.DayOfWeek)
+                    .ToListAsync();
+                
                 var userMood = await _unitOfWork.Repository<UserMood>()
                     .FindBy(x => (x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
                                  && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
@@ -148,7 +153,6 @@ public class AccountController : ControllerBase
                 {
                     User = user, MedicineDays = medicineDays,
                     UserMood = userMood.FirstOrDefault()?.Mood.ToString() ?? "None",
-                    UserMedicine = userMedicine.FirstOrDefault()?.IsTaken ?? false,
                     IsSuccess = true
                 });
             }
@@ -198,7 +202,7 @@ public class AccountController : ControllerBase
         return BadRequest(new {IsSuccess = false});
     }
 
-    [HttpPost("setUserMedicine")]
+    // [HttpPost("setUserMedicine")]
     public async Task<IActionResult> SetUserMedicine([FromBody] UserMedicineRequest model)
     {
         if (model.UserId == null)
@@ -214,7 +218,7 @@ public class AccountController : ControllerBase
             var userMedicine = new UserMedicine()
             {
                 Email = model.Email,
-                IsTaken = model.IsTaken,
+                // IsTaken = model.IsTaken,
                 CreatedAt = DateTimeOffset.UtcNow
             };
             await _unitOfWork.Repository<UserMedicine>().InsertAsync(userMedicine);
