@@ -15,8 +15,8 @@ public class RegisterModel
     public string Address { get; set; }
     public string? ImageUrl { get; set; }
     public AlzheimerStageEnum AlzheimerStage { get; set; }
-    public bool HavePet { get; set; }
-    public bool WantVirtualPet { get; set; }
+    public bool HasPet { get; set; }
+    public bool WantsVirtualPet { get; set; }
     public string CountryCode { get; set; }
     public string CountryCallingCode { get; set; }
     public string MobileNumber { get; set; }

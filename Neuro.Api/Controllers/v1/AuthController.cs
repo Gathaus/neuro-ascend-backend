@@ -53,13 +53,14 @@ public class AuthController : BaseController
             Address = model.Address,
             ImageUrl = model.ImageUrl,
             AlzheimerStage = model.AlzheimerStage,
-            HavePet = model.HavePet,
-            WantVirtualPet = model.WantVirtualPet,
+            HavePet = model.HasPet,
+            WantVirtualPet = model.WantsVirtualPet,
             CountryCode = model.CountryCode,
             CountryCallingCode = model.CountryCallingCode,
             MobileNumber = model.MobileNumber,
             FirebaseToken = model.FirebaseToken,
-            Diseases = model.Diseases.Select(d => new Disease {Name = d}).ToList()
+            Diseases = model.Diseases.Select(d => new Disease {Name = d}).ToList(),
+            UserMedicines = new List<UserMedicine>()
         };
 
         foreach (var med in model.Medications)
@@ -71,7 +72,7 @@ public class AuthController : BaseController
                 BeginningDate = med.BeginningDate,
                 EndDate = med.EndDate,
                 Days = med.MedicationDays.Select(d => new MedicationDay {DayOfWeek = d.DayOfWeek}).ToList(),
-                Times = med.MedicationTimes.Select(t => new TimeOfDay {Time = t.Time}).ToList(),
+                Times = med.MedicationTimes.Select(t => new TimeOfDay { Time = t.Time }).ToList(),
                 Medication = new Medication {Name = med.Name}
             };
             user.UserMedicines.Add(userMedicine);
