@@ -62,6 +62,7 @@ public async Task<IActionResult> Register([FromBody] RegisterModel model)
         Diseases = model.Diseases.Select(d => new Disease { Name = d }).ToList(),
         UserMedicines = new List<UserMedicine>()
     };
+    
 
     // İlaç bilgilerini User nesnesine ekle
     foreach (var med in model.Medications)
@@ -88,7 +89,11 @@ public async Task<IActionResult> Register([FromBody] RegisterModel model)
 
     if (result > 0)
     {
-        return Ok(new { IsSuccess = true, Message = "Registration successful", UserId = user.Id });
+        return Ok(new { IsSuccess = true, Message = "Registration successful",
+            UserId = user.Id, Email = user.Email,User = user,
+            UserMood = "None",
+            MedicineDays = model.Medications.SelectMany(x => x.MedicationDays).Select(x => x.DayOfWeek).ToList()
+        });
     }
 
     return BadRequest(new { IsSuccess = false, Message = "Registration failed" });

@@ -26,137 +26,119 @@ try
 
 // builder.Host.UseSerilog();
 
-var certificatePath = Path.Combine(AppContext.BaseDirectory, "Configurations", "ca-certificate.crt");
-var postgreServerConnectionString = configuration.GetConnectionString("PostgreServer") + $"RootCertificate={certificatePath};";
-var logDBConnectionString = configuration.GetConnectionString("LogDB") + $"RootCertificate={certificatePath};";
+    var certificatePath = Path.Combine(AppContext.BaseDirectory, "Configurations", "ca-certificate.crt");
+    var postgreServerConnectionString =
+        configuration.GetConnectionString("PostgreServer") + $"RootCertificate={certificatePath};";
+    var logDBConnectionString = configuration.GetConnectionString("LogDB") + $"RootCertificate={certificatePath};";
 
-var nlogConfig = configuration.GetSection("NLog");
-builder.Services.AddRemLogger(nlogConfig);
+    var nlogConfig = configuration.GetSection("NLog");
+    builder.Services.AddRemLogger(nlogConfig);
 
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
-    {
-        options.Password.RequireDigit = false; 
-        options.Password.RequireNonAlphanumeric = false; 
-        options.Password.RequireUppercase = false; 
-    })
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
-
-builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        
-    })
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters()
+    builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
         {
-            ValidateActor = true,
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            RequireExpirationTime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration.GetSection("Jwt:Issuer").Value,
-            ValidAudience = builder.Configuration.GetSection("Jwt:Audience").Value,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("Jwt:Key").Value))
+            options.Password.RequireDigit = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireUppercase = false;
+        })
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
 
-        };
-    });
+    builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters()
+            {
+                ValidateActor = true,
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                RequireExpirationTime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = builder.Configuration.GetSection("Jwt:Issuer").Value,
+                ValidAudience = builder.Configuration.GetSection("Jwt:Audience").Value,
+                IssuerSigningKey =
+                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("Jwt:Key").Value))
+            };
+        });
 
 
-builder.Services.AddControllers()
-    .AddNewtonsoftJson(options =>
+    builder.Services.AddControllers()
+        .AddNewtonsoftJson(options =>
+        {
+            options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+        });
+
+
+    builder.Services.AddControllers();
+
+    builder.Services.AddHttpContextAccessor();
+
+    builder.Services.AddCustomCors();
+
+    var rabbitMqConfig = configuration.GetSection("RabbitMQ");
+    builder.Services.ConfigureMassTransit(rabbitMqConfig["Url"]);
+
+    builder.Services.AddApplication();
+
+    builder.Services.AddInfrastructureEf(postgreServerConnectionString,
+        postgreServerConnectionString);
+    builder.Services.AddInfrastructure();
+
+    builder.Services.AddScoped<StorageManager>(provider =>
     {
-        options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+        var accessKey = "DO007U98MQTMT2RLVHKE";
+        var secretKey = "YcMZvxYJFUUg9CX9JQhZksmM0isKsv6Z4k8mZYOeAag";
+        return new StorageManager(accessKey, secretKey);
     });
 
+    builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddControllers();
-
-builder.Services.AddHttpContextAccessor();
-
-builder.Services.AddCustomCors();
-
-var rabbitMqConfig = configuration.GetSection("RabbitMQ");
-builder.Services.ConfigureMassTransit(rabbitMqConfig["Url"]);
-
-builder.Services.AddApplication();
-
-builder.Services.AddInfrastructureEf(postgreServerConnectionString,
-    postgreServerConnectionString);
-builder.Services.AddInfrastructure();
-
-builder.Services.AddScoped<StorageManager>(provider =>
-{
-    var accessKey = "DO007U98MQTMT2RLVHKE";
-    var secretKey = "YcMZvxYJFUUg9CX9JQhZksmM0isKsv6Z4k8mZYOeAag";
-    return new StorageManager(accessKey, secretKey);
-});
-
-builder.Services.AddEndpointsApiExplorer();
-
-builder.Services.AddNeuroSwagger();
+    builder.Services.AddNeuroSwagger();
 
 // builder.Services.AddNeuroAuthentication(builder.Configuration);
 
-builder.Host.UseNeuroLogger();
+    builder.Host.UseNeuroLogger();
 
-if (builder.Environment.IsDevelopment() )
-{
-    // || builder.Environment.IsStaging() || builder.Environment.IsProduction()
+        // || builder.Environment.IsDevelopment()
+    if (builder.Environment.IsProduction() || builder.Environment.IsStaging())
+    {
+        builder.Services.AddHangfireServices(builder.Configuration.GetConnectionString("PostgreServer")!);
+    }
 
-}
-// builder.Services.AddHangfireServices(builder.Configuration.GetConnectionString("PostgreServer"));
 
+    var app = builder.Build();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    if (app.Environment.IsDevelopment())
+    {
+    }
 
-var app = builder.Build();
-app.UseSwagger();
-app.UseSwaggerUI();
-if (app.Environment.IsDevelopment() )
-{
+    // || builder.Environment.IsDevelopment()
+    if (app.Environment.IsStaging() || app.Environment.IsProduction() )
+    {
+        app.UseCustomHangfireDashboard(app.Services);
+        HangfireConfiguration.RestartProcessingJobsBeforeStartingServer(app.Services);
+    }
 
-    // || app.Environment.IsStaging() || app.Environment.IsProduction()
+    app.UseMiddleware<ExceptionMiddleware>();
+    app.UseHttpsRedirection();
 
-}
-// app.UseCustomHangfireDashboard(app.Services);
-// HangfireConfiguration.RestartProcessingJobsBeforeStartingServer(app.Services);
+    app.UseRouting();
+    app.UseCors("AllowAllOrigins");
 
-app.UseMiddleware<ExceptionMiddleware>();
-app.UseHttpsRedirection();
+    app.UseAuthentication();
+    app.UseAuthorization();
 
-app.UseRouting();
-app.UseCors("AllowAllOrigins");
+    app.MapControllers();
 
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+    app.Run();
 }
 catch (Exception ex)
 {
-    var query = @"
-        INSERT INTO logs 
-        (userid, email, userfullname, ipaddress, deviceid, version, datetime, errorcode, level, caller, userfriendlymessage, exceptionmessage, exceptionsource, exceptionstacktrace, controller, action, url, httpmethod, requestjson, responsejson, companyid, innerexceptionid) 
-        VALUES 
-        (@UserId, @Email, @UserFullName, @IPAddress, @DeviceId, @Version, @DateTime, @ErrorCode, @Level, @Caller, @UserFriendlyMessage, @ExceptionMessage, @ExceptionSource, @ExceptionStackTrace, @Controller, @Action, @Url, @HttpMethod, @RequestJson, @ResponseJson, @CompanyId, @InnerExceptionId)";
-
-    using (var connection = new SqlConnection("Your_Connection_String"))
-    {
-        var command = new SqlCommand(query, connection);
-
-        // Parametrelerin atanması
-        command.Parameters.AddWithValue("@UserId",1);
-        command.Parameters.AddWithValue("@DateTime", DateTime.Now);
-        command.Parameters.AddWithValue("@ExceptionMessage", ex.Message);
-        command.Parameters.AddWithValue("@ExceptionStackTrace", ex.StackTrace);
-        command.Parameters.AddWithValue("@Level", "ERROR");
-
-        connection.Open();
-        command.ExecuteNonQuery();
-    }
+    Console.WriteLine(ex);
     throw;
 }

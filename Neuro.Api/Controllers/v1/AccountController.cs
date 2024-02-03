@@ -170,6 +170,29 @@ public class AccountController : ControllerBase
         return BadRequest("Invalid Google ID Token.");
     }
 
+      [HttpPost("user-info-from-google")]
+    public async Task<IActionResult> GetUserInfoFromGoogle([FromBody] GoogleToken model)
+    {
+        var payload = await GoogleJsonWebSignature.ValidateAsync(model.IdToken);
+        if (payload != null && !string.IsNullOrEmpty(payload.Email))
+        {
+            var user = await _unitOfWork.Repository<User>().FindBy(x => x.Email.Equals(payload.Email)).FirstOrDefaultAsync();
+            if (user != null)
+            {
+                
+                return BadRequest(new{IsSuccess = false,Message="User already exists."});
+            }
+                
+            return Ok(new
+            {
+                Email = payload.Email,
+                IsSuccess = true
+            });
+        }
+
+        return BadRequest("Invalid Google ID Token.");
+    }
+
     [HttpPost("setUserMood")]
     public async Task<IActionResult> SetUserMood([FromBody] UserMoodRequest model)
     {
