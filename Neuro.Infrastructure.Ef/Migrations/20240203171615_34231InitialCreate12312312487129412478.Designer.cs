@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Neuro.Infrastructure.Ef.Contexts;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Neuro.Infrastructure.Ef.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240203171615_34231InitialCreate12312312487129412478")]
+    partial class _34231InitialCreate12312312487129412478
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -559,6 +562,27 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.ToTable("RecommendedRoutines");
                 });
 
+            modelBuilder.Entity("Neuro.Domain.Entities.TimeOfDay", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("Time")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserMedicineId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserMedicineId");
+
+                    b.ToTable("TimesOfDay");
+                });
+
             modelBuilder.Entity("Neuro.Domain.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -577,7 +601,7 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.Property<byte>("AlzheimerStage")
                         .HasColumnType("smallint");
 
-                    b.Property<byte?>("BloodType")
+                    b.Property<byte>("BloodType")
                         .HasColumnType("smallint");
 
                     b.Property<string>("CountryCallingCode")
@@ -766,27 +790,6 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.ToTable("UserProgresses");
                 });
 
-            modelBuilder.Entity("TimeOfDay", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTimeOffset>("Time")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("UserMedicineId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserMedicineId");
-
-                    b.ToTable("TimesOfDay");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -894,6 +897,17 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.Navigation("Food");
                 });
 
+            modelBuilder.Entity("Neuro.Domain.Entities.TimeOfDay", b =>
+                {
+                    b.HasOne("Neuro.Domain.Entities.UserMedicine", "UserMedicine")
+                        .WithMany("Times")
+                        .HasForeignKey("UserMedicineId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserMedicine");
+                });
+
             modelBuilder.Entity("Neuro.Domain.Entities.UserMedicine", b =>
                 {
                     b.HasOne("Neuro.Domain.Entities.Medication", "Medication")
@@ -948,17 +962,6 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.Navigation("MorningLastFood");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("TimeOfDay", b =>
-                {
-                    b.HasOne("Neuro.Domain.Entities.UserMedicine", "UserMedicine")
-                        .WithMany("Times")
-                        .HasForeignKey("UserMedicineId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("UserMedicine");
                 });
 
             modelBuilder.Entity("Neuro.Domain.Entities.Medication", b =>

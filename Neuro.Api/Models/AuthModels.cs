@@ -10,7 +10,7 @@ public class RegisterModel
     public string LastName { get; set; }
     public string Email { get; set; }
     public string? Password { get; set; }
-    public BloodTypeEnum BloodType { get; set; }
+    public BloodTypeEnum? BloodGroup { get; set; }
     public int Age { get; set; }
     public string Address { get; set; }
     public string? ImageUrl { get; set; }
@@ -23,6 +23,7 @@ public class RegisterModel
     public string? FirebaseToken { get; set; }
     public List<MedicationModel> Medications { get; set; } = new List<MedicationModel>();
     public List<string> Diseases { get; set; } = new List<string>();
+    public string? TimeZone { get; set; }
 }
 
 public class MedicationModel
@@ -43,7 +44,8 @@ public class MedicationDayModel
 
 public class TimeOfDayModel
 {
-    public DateTime Time { get; set; }
+    public string Time { get; set; }
+    
 }
 
 
