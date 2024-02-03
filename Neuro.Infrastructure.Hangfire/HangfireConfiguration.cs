@@ -59,7 +59,10 @@ public static class HangfireConfiguration
     public static void AddHangfireServices(this IServiceCollection services, string connectionString)
     {
         services.AddHangfire(config => config
-            .UsePostgreSqlStorage(connectionString));
+            .UsePostgreSqlStorage(connectionString, new PostgreSqlStorageOptions
+            {
+                DistributedLockTimeout = TimeSpan.FromMinutes(5) // Kilit zaman aşımını 5 dakikaya çıkarın
+            }));
 
         // HangfireActivator için IServiceScopeFactory örneği alın ve yapılandırın
         services.AddSingleton<JobActivator, HangfireActivator>(provider => 

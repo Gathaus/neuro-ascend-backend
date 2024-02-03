@@ -4,7 +4,9 @@ using Google.Apis.Auth.OAuth2;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Neuro.Application.Managers.Abstract;
+using Newtonsoft.Json;
 
 namespace Neuro.Application.Managers.Concrete
 {
@@ -12,21 +14,15 @@ namespace Neuro.Application.Managers.Concrete
     {
         private readonly FirebaseApp _firebaseApp;
 
-        public NotificationManager()
+        public NotificationManager(IConfiguration configuration)
         {
             if (FirebaseApp.DefaultInstance == null)
             {
-                var applicationRoot = new DirectoryInfo(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "Neuro.Application")).FullName;
-                var configFilePath = Path.Combine(applicationRoot, "firebase-config-file.json");
-                
-                if (!File.Exists(configFilePath))
-                {
-                    throw new FileNotFoundException("Firebase configuration file not found at the specified path.", configFilePath);
-                }
+                var firebaseConfig = configuration.GetSection("FireBase").Get<FireBaseConfig>(); // FireBaseConfig nesnesine dönüştür
 
                 _firebaseApp = FirebaseApp.Create(new AppOptions
                 {
-                    Credential = GoogleCredential.FromFile(configFilePath)
+                    Credential = GoogleCredential.FromJson(JsonConvert.SerializeObject(firebaseConfig)) // JSON string'ine dönüştür
                 });
             }
             else

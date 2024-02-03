@@ -1,5 +1,6 @@
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Neuro.Application.Attributes;
 using Neuro.Application.Base.BackgroundJobs;
 using Neuro.Application.Managers.Concrete;
@@ -15,14 +16,14 @@ public class MedicineReminderJob : IRecurringJob
     private readonly IUnitOfWork _unitOfWork;
     private readonly NotificationManager _notificationManager;
 
-    public MedicineReminderJob(IUnitOfWork unitOfWork)
+    public MedicineReminderJob(IUnitOfWork unitOfWork, IConfiguration configuration)
     {
         _unitOfWork = unitOfWork;
-        _notificationManager = new NotificationManager();
+        _notificationManager = new NotificationManager(configuration);
     }
     
     [Queue("critical")]
-    [RecurringJob("MedicineReminderJob.cs", "0 */1 * * * *")]
+    [RecurringJob("MedicineReminderJob.cs", "0 0 */1 * * *")]
     public async Task Execute()
     {
         var today = DateTime.UtcNow.DayOfWeek;
@@ -38,6 +39,7 @@ public class MedicineReminderJob : IRecurringJob
                 .FindBy(x => x.Id == medicationDay.UserMedicineId)
                 .Include(x => x.User)
                 .Include(x => x.Times)
+                .Include(x=>x.Medication)
                 .FirstOrDefaultAsync();
 
             if (userMedicine == null || userMedicine.User?.FirebaseToken == null)
@@ -45,10 +47,13 @@ public class MedicineReminderJob : IRecurringJob
 
             var currentDateTime = new DateTime(1, 1, 1, currentTime.Hours, currentTime.Minutes, currentTime.Seconds);
 
-            var timeMatch = userMedicine.Times.Any(time => Math.Abs((time.Time - currentDateTime).TotalMinutes) < 1);
+            var timeMatch = userMedicine.Times.Any(time => time.Time.Hour == currentDateTime.Hour);
 
+            var medicationName = userMedicine.Medication.Name;
             if (timeMatch)
-                await _notificationManager.SendNotificationAsync(userMedicine.User.FirebaseToken, "Medication Time", "It's time to take your medications.");
+                await _notificationManager.SendNotificationAsync(userMedicine.User.FirebaseToken, 
+                    $"Hi {userMedicine.User.FirstName}!",
+                    $"It's time to take your {medicationName} medications.");
         }
     }
 }

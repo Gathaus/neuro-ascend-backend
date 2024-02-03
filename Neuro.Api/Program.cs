@@ -15,6 +15,7 @@ using Neuro.Infrastructure.Ef.Contexts;
 using Neuro.Infrastructure.Hangfire;
 using Neuro.Infrastructure.Logging;
 using Neuro.Infrastructure.MessageBus.Configuration;
+using Npgsql;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -139,6 +140,24 @@ try
 }
 catch (Exception ex)
 {
+    // Hata yakalandığında çalışacak kod
+    var connectionString = "Host=db-postgresql-nyc3-48272-do-user-15119865-0.c.db.ondigitalocean.com;Port=25060;Database=neuro_ascend_mvp;Username=doadmin;Password=AVNS_AZDUg45ahNV9RWG_cQT;SslMode=VerifyCA;Trust Server Certificate=false;RootCertificate=./ca-certificate.crt;";
+    using (var connection = new NpgsqlConnection(connectionString))
+    {
+        var cmdText = @"INSERT INTO logs (userid, email, userfullname, ipaddress, deviceid, version, datetime, errorcode, level, caller, userfriendlymessage, exceptionmessage, exceptionsource, exceptionstacktrace, controller, action, url, httpmethod, requestjson, responsejson, companyid, innerexceptionid) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, @datetime, NULL, 'ERROR', NULL, NULL, @exceptionMessage, @exceptionSource, @exceptionStackTrace, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)";
+
+        using (var command = new NpgsqlCommand(cmdText, connection))
+        {
+            command.Parameters.AddWithValue("@datetime", DateTime.UtcNow);
+            command.Parameters.AddWithValue("@exceptionMessage", ex.Message);
+            command.Parameters.AddWithValue("@exceptionSource", ex.Source);
+            command.Parameters.AddWithValue("@exceptionStackTrace", ex.StackTrace);
+
+            connection.Open();
+            command.ExecuteNonQuery();
+        }
+    }
+
     Console.WriteLine(ex);
     throw;
 }
