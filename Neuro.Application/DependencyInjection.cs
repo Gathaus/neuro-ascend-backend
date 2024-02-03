@@ -15,7 +15,6 @@ public static class DependencyInjection
         InjectDoubleFilterServices(services);
         InjectDoubleDynamicServices(services);
         services.AddSingleton<INotificationManager, NotificationManager>();
-        services.AddScoped<TestJob>();
 
 
         return services;
