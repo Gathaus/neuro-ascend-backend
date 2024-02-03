@@ -43,7 +43,7 @@ public class MedicationDayModel
 
 public class TimeOfDayModel
 {
-    public TimeSpan Time { get; set; }
+    public DateTime Time { get; set; }
 }
 
 

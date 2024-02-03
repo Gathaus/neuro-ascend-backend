@@ -43,7 +43,9 @@ public class MedicineReminderJob : IRecurringJob
             if (userMedicine == null || userMedicine.User?.FirebaseToken == null)
                 continue;
 
-            var timeMatch = userMedicine.Times.Any(time => Math.Abs((time.Time - currentTime).TotalMinutes) < 1);
+            var currentDateTime = new DateTime(1, 1, 1, currentTime.Hours, currentTime.Minutes, currentTime.Seconds);
+
+            var timeMatch = userMedicine.Times.Any(time => Math.Abs((time.Time - currentDateTime).TotalMinutes) < 1);
 
             if (timeMatch)
                 await _notificationManager.SendNotificationAsync(userMedicine.User.FirebaseToken, "Medication Time", "It's time to take your medications.");

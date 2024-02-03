@@ -27,67 +27,72 @@ public class AuthController : BaseController
     #endregion
 
     [HttpPost("Register")]
-    public async Task<IActionResult> Register([FromBody] RegisterModel model)
+public async Task<IActionResult> Register([FromBody] RegisterModel model)
+{
+    if (model == null)
     {
-        if (model == null)
-        {
-            return BadRequest(new {IsSuccess = false, Message = "Invalid model"});
-        }
-
-        var existingUser =
-            await _unitOfWork.Repository<User>().FindBy(x => x.Email == model.Email).FirstOrDefaultAsync();
-        if (existingUser != null)
-        {
-            return BadRequest(new {IsSuccess = false, Message = "User already exists"});
-        }
-
-        var user = new User
-        {
-            Username = model.Username,
-            FirstName = model.FirstName,
-            LastName = model.LastName,
-            Email = model.Email,
-            Password = model.Password, // Şifreyi hashleme işlemi uygulamanız önerilir.
-            BloodType = model.BloodType,
-            Age = model.Age,
-            Address = model.Address,
-            ImageUrl = model.ImageUrl,
-            AlzheimerStage = model.AlzheimerStage,
-            HavePet = model.HasPet,
-            WantVirtualPet = model.WantsVirtualPet,
-            CountryCode = model.CountryCode,
-            CountryCallingCode = model.CountryCallingCode,
-            MobileNumber = model.MobileNumber,
-            FirebaseToken = model.FirebaseToken,
-            Diseases = model.Diseases.Select(d => new Disease {Name = d}).ToList(),
-            UserMedicines = new List<UserMedicine>()
-        };
-
-        foreach (var med in model.Medications)
-        {
-            var userMedicine = new UserMedicine
-            {
-                Usage = med.Usage,
-                PillNumber = med.PillNumber,
-                BeginningDate = med.BeginningDate,
-                EndDate = med.EndDate,
-                Days = med.MedicationDays.Select(d => new MedicationDay {DayOfWeek = d.DayOfWeek}).ToList(),
-                Times = med.MedicationTimes.Select(t => new TimeOfDay { Time = t.Time }).ToList(),
-                Medication = new Medication {Name = med.Name}
-            };
-            user.UserMedicines.Add(userMedicine);
-        }
-
-        await _unitOfWork.Repository<User>().InsertAsync(user);
-        var result = await _unitOfWork.SaveChangesAsync();
-
-        if (result > 0)
-        {
-            return Ok(new {IsSuccess = true, Message = "Registration successful", UserId = user.Id});
-        }
-
-        return BadRequest(new {IsSuccess = false, Message = "Registration failed"});
+        return BadRequest(new { IsSuccess = false, Message = "Invalid model" });
     }
+
+    var existingUser = await _unitOfWork.Repository<User>().FindBy(x => x.Email == model.Email).FirstOrDefaultAsync();
+    if (existingUser != null)
+    {
+        return BadRequest(new { IsSuccess = false, Message = "User already exists" });
+    }
+
+    // Modelden gelen verileri kullanarak yeni bir User nesnesi oluştur
+    var user = new User
+    {
+        Username = model.Username,
+        FirstName = model.FirstName,
+        LastName = model.LastName,
+        Email = model.Email,
+        Password = model.Password, // Şifre güvenliği için hashleme önerilir.
+        BloodType = model.BloodType,
+        Age = model.Age,
+        Address = model.Address,
+        ImageUrl = model.ImageUrl,
+        AlzheimerStage = model.AlzheimerStage,
+        HavePet = model.HasPet,
+        WantVirtualPet = model.WantsVirtualPet,
+        CountryCode = model.CountryCode,
+        CountryCallingCode = model.CountryCallingCode,
+        MobileNumber = model.MobileNumber,
+        FirebaseToken = model.FirebaseToken,
+        Diseases = model.Diseases.Select(d => new Disease { Name = d }).ToList(),
+        UserMedicines = new List<UserMedicine>()
+    };
+
+    // İlaç bilgilerini User nesnesine ekle
+    foreach (var med in model.Medications)
+    {
+        var userMedicine = new UserMedicine
+        {
+            Medication = new Medication { Name = med.Name },
+            Usage = med.Usage,
+            PillNumber = med.PillNumber,
+            BeginningDate = med.BeginningDate,
+            EndDate = med.EndDate,
+            Days = med.MedicationDays.Select(d => new MedicationDay { DayOfWeek = d.DayOfWeek }).ToList(),
+            Times = med.MedicationTimes.Select(t => new TimeOfDay 
+            {
+                // TimeSpan değerini DateTime'a çevirerek TimeOfDay nesnesine atama
+                Time = DateTime.SpecifyKind(new DateTime(1, 1, 1, t.Time.Hour, t.Time.Minute, t.Time.Second), DateTimeKind.Utc)
+            }).ToList()
+        };
+        user.UserMedicines.Add(userMedicine);
+    }
+
+    await _unitOfWork.Repository<User>().InsertAsync(user);
+    var result = await _unitOfWork.SaveChangesAsync();
+
+    if (result > 0)
+    {
+        return Ok(new { IsSuccess = true, Message = "Registration successful", UserId = user.Id });
+    }
+
+    return BadRequest(new { IsSuccess = false, Message = "Registration failed" });
+}
 
     [HttpPost("Login")]
     public async Task<IActionResult> Login([FromBody] LoginModel model)
