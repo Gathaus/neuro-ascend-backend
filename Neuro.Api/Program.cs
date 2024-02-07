@@ -104,8 +104,12 @@ try
 
     builder.Host.UseNeuroLogger();
 
-        // || builder.Environment.IsDevelopment()
-    if (builder.Environment.IsProduction() || builder.Environment.IsStaging())
+    // if (builder.Environment.IsProduction() || builder.Environment.IsStaging())
+    // {
+    //     builder.Services.AddHangfireServices(builder.Configuration.GetConnectionString("PostgreServer")!);
+    // }
+    
+    if (builder.Environment.IsDevelopment())
     {
         builder.Services.AddHangfireServices(builder.Configuration.GetConnectionString("PostgreServer")!);
     }
@@ -118,8 +122,13 @@ try
     {
     }
 
-    // || builder.Environment.IsDevelopment()
-    if (app.Environment.IsStaging() || app.Environment.IsProduction() )
+    // if (app.Environment.IsStaging() || app.Environment.IsProduction() )
+    // {
+    //     app.UseCustomHangfireDashboard(app.Services);
+    //     HangfireConfiguration.RestartProcessingJobsBeforeStartingServer(app.Services);
+    // }
+    
+    if (builder.Environment.IsDevelopment())
     {
         app.UseCustomHangfireDashboard(app.Services);
         HangfireConfiguration.RestartProcessingJobsBeforeStartingServer(app.Services);

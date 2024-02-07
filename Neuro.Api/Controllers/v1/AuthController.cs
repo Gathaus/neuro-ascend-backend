@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Neuro.Api.Models;
@@ -17,6 +18,7 @@ public class AuthController : BaseController
 
     private readonly BaseBusinessService _baseService;
     private readonly IUnitOfWork _unitOfWork;
+    
 
     public AuthController(BaseBusinessService baseService, IUnitOfWork unitOfWork)
     {
@@ -79,27 +81,12 @@ public class AuthController : BaseController
                 Days = med.MedicationDays.Select(d => new MedicationDay {DayOfWeek = d.DayOfWeek}).ToList(),
                 Times = med.MedicationTimes.Select(t =>
                 {
-                    var parts = t.Time.Split('|');
-                    if (parts.Length > 1)
+                    var userTime = DateTime.Parse(t.Time);
+
+                    return new TimeOfDay 
                     {
-                        var dateTimeString = parts[0];
-                        var timezoneId = parts[1];
-
-                        var timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(timezoneId);
-                        var offset = timeZoneInfo.GetUtcOffset(DateTime.UtcNow);
-
-                        DateTime.TryParse(dateTimeString, out var dateTime);
-                
-                        // Zaman dilimi bilgisini kullanarak DateTimeOffset oluştur
-                        var dateTimeOffset = new DateTimeOffset(dateTime, offset);
-
-                        // PostgreSQL'e yazmadan önce UTC'ye dönüştür
-                        var utcDateTimeOffset = dateTimeOffset.ToUniversalTime();
-                
-                        return new TimeOfDay { Time = utcDateTimeOffset };
-                    }
-
-                    throw new ArgumentException("Time information is incomplete in the TimeOfDayModel.");
+                        Time = userTime 
+                    };
                 }).ToList()
             };
             user.UserMedicines.Add(userMedicine);
@@ -164,14 +151,6 @@ public class AuthController : BaseController
             throw;
         }
     }
+    
 
-    private DateTimeOffset ParseDateTimeOffset(string dateTimeOffsetString)
-    {
-        var parts = dateTimeOffsetString.Split('|');
-        if (parts.Length != 3) throw new ArgumentException("Invalid DateTimeOffset format.");
-
-        var dateTime = DateTime.Parse(parts[0]);
-        var offset = TimeSpan.FromMinutes(int.Parse(parts[1]));
-        return new DateTimeOffset(dateTime, offset);
-    }
 }

@@ -53,6 +53,7 @@ namespace Neuro.Infrastructure.Ef.Contexts;
             {
                 builder.Entity(entityType.Name).Property("Timestamp").IsConcurrencyToken();
             }            ApplyConfigurationsFromAssembly(builder);
+            
         }
         public override int SaveChanges()
         {

@@ -52,34 +52,34 @@ public class AccountController : ControllerBase
         return BadRequest(result.Errors);
     }
 
-     // [HttpPost("addMedicine")]
-     // public async Task<IActionResult> AddMedicine(MedicineModel model)
-     // {
-     //    TODO CHANGE THIS MEDICINE
-     //     var data = await _unitOfWork.Repository<MedicineUser>().FindBy(x =>
-     //             x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()) && x.WeekDay == model.WeekDay)
-     //         .FirstOrDefaultAsync();
-     //     if (data != null)
-     //     {
-     //         return BadRequest("You already added medicine.");
-     //     }
-     //    
-     //     //TODO CHANGE THIS MEDICINE
-     //     var usermedicine = new MedicineUser()
-     //     {
-     //         Email = model.Email,
-     //         WeekDay = model.WeekDay,
-     //     };
-     //    
-     //     var result = await _unitOfWork.Repository<MedicineUser>().InsertAsync(usermedicine);
-     //     var rows = await _unitOfWork.SaveChangesAsync();
-     //     if (rows > 0)
-     //     {
-     //         return Ok(new {IsSuccess = true});
-     //     }
-     //
-     //     return BadRequest(new {IsSuccess = false});
-     // }
+    // [HttpPost("addMedicine")]
+    // public async Task<IActionResult> AddMedicine(MedicineModel model)
+    // {
+    //    TODO CHANGE THIS MEDICINE
+    //     var data = await _unitOfWork.Repository<MedicineUser>().FindBy(x =>
+    //             x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()) && x.WeekDay == model.WeekDay)
+    //         .FirstOrDefaultAsync();
+    //     if (data != null)
+    //     {
+    //         return BadRequest("You already added medicine.");
+    //     }
+    //    
+    //     //TODO CHANGE THIS MEDICINE
+    //     var usermedicine = new MedicineUser()
+    //     {
+    //         Email = model.Email,
+    //         WeekDay = model.WeekDay,
+    //     };
+    //    
+    //     var result = await _unitOfWork.Repository<MedicineUser>().InsertAsync(usermedicine);
+    //     var rows = await _unitOfWork.SaveChangesAsync();
+    //     if (rows > 0)
+    //     {
+    //         return Ok(new {IsSuccess = true});
+    //     }
+    //
+    //     return BadRequest(new {IsSuccess = false});
+    // }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginModel model)
@@ -115,6 +115,17 @@ public class AccountController : ControllerBase
         public string? FirebaseToken { get; set; }
     }
 
+    public class EmailModel
+    {
+        public string Email { get; set; }
+        public string? FirebaseToken { get; set; }
+    }
+    
+    public class GoogleTokenForRegister
+    {
+        public string IdToken { get; set; }
+    }
+
     [HttpPost("signin-google")]
     public async Task<IActionResult> VerifyGoogleToken([FromBody] GoogleToken model)
     {
@@ -137,12 +148,12 @@ public class AccountController : ControllerBase
                     _unitOfWork.Repository<User>().Update(user);
                     await _unitOfWork.SaveChangesAsync();
                 }
-                
+
                 var medicineDays = await _unitOfWork.Repository<MedicationDay>()
                     .FindBy(x => x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
-                    .Select(x=>x.DayOfWeek)
+                    .Select(x => x.DayOfWeek)
                     .ToListAsync();
-                
+
                 var userMood = await _unitOfWork.Repository<UserMood>()
                     .FindBy(x => (x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
                                  && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
@@ -170,19 +181,67 @@ public class AccountController : ControllerBase
         return BadRequest("Invalid Google ID Token.");
     }
 
-      [HttpPost("user-info-from-google")]
-    public async Task<IActionResult> GetUserInfoFromGoogle([FromBody] GoogleToken model)
+    [HttpPost("signin-email")]
+    public async Task<IActionResult> SignInWithEmail([FromBody] EmailModel model)
+    {
+        if (!string.IsNullOrEmpty(model.Email))
+        {
+            var normalizedEmail = model.Email.ToLower().Trim();
+            var user = await _unitOfWork.Repository<User>()
+                .FindBy(x => x.Email.ToLower().Trim() == normalizedEmail)
+                .FirstOrDefaultAsync();
+
+            if (user != null)
+            {
+                if (model.FirebaseToken != null)
+                {
+                    user.FirebaseToken = model.FirebaseToken;
+                    _unitOfWork.Repository<User>().Update(user);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+
+                var medicineDays = await _unitOfWork.Repository<MedicationDay>()
+                    .FindBy(x => x.User.Email.ToLower().Trim() == normalizedEmail)
+                    .Select(x => x.DayOfWeek)
+                    .ToListAsync();
+
+                var userMood = await _unitOfWork.Repository<UserMood>()
+                    .FindBy(x => x.User.Email.ToLower().Trim() == normalizedEmail && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date)
+                    .ToListAsync();
+
+                var userMedicine = await _unitOfWork.Repository<UserMedicine>()
+                    .FindBy(x => x.User.Email.ToLower().Trim() == normalizedEmail && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date)
+                    .ToListAsync();
+
+                return Ok(new
+                {
+                    User = user,
+                    MedicineDays = medicineDays,
+                    UserMood = userMood.FirstOrDefault()?.Mood.ToString() ?? "None",
+                    IsSuccess = true
+                });
+            }
+
+            return BadRequest(new { IsSuccess = false, Message = "User Not Found" });
+        }
+
+        return BadRequest("Invalid Email Address.");
+    }
+    
+    
+    [HttpPost("user-info-from-google")]
+    public async Task<IActionResult> GetUserInfoFromGoogle([FromBody] GoogleTokenForRegister model)
     {
         var payload = await GoogleJsonWebSignature.ValidateAsync(model.IdToken);
         if (payload != null && !string.IsNullOrEmpty(payload.Email))
         {
-            var user = await _unitOfWork.Repository<User>().FindBy(x => x.Email.Equals(payload.Email)).FirstOrDefaultAsync();
+            var user = await _unitOfWork.Repository<User>().FindBy(x => x.Email.Equals(payload.Email))
+                .FirstOrDefaultAsync();
             if (user != null)
             {
-                
-                return BadRequest(new{IsSuccess = false,Message="User already exists."});
+                return BadRequest(new {IsSuccess = false, Message = "User already exists."});
             }
-                
+
             return Ok(new
             {
                 Email = payload.Email,

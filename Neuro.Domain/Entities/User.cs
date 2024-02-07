@@ -29,5 +29,4 @@ public class User : BaseEntity<int>
     public ICollection<UserMedicine> UserMedicines { get; set; }
 
 
-
 }

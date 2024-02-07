@@ -2,9 +2,7 @@ using Neuro.Domain.Entities;
 
 public class TimeOfDay : BaseEntity<int>
 {
-    public DateTimeOffset Time { get; set;}
-
-    
+    public DateTime Time { get; set;}
 
     public int UserMedicineId { get; set; }
     public UserMedicine UserMedicine { get; set; }
