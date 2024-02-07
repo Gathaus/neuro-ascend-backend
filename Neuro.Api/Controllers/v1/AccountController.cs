@@ -201,22 +201,19 @@ public class AccountController : ControllerBase
                 }
 
                 var medicineDays = await _unitOfWork.Repository<MedicationDay>()
-                    .FindBy(x => x.User.Email.ToLower().Trim() == normalizedEmail)
+                    .FindBy(x => x.Email.ToLower().Trim().Equals(user.Email.ToLower().Trim()))
                     .Select(x => x.DayOfWeek)
                     .ToListAsync();
 
                 var userMood = await _unitOfWork.Repository<UserMood>()
-                    .FindBy(x => x.User.Email.ToLower().Trim() == normalizedEmail && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date)
-                    .ToListAsync();
-
+                    .FindBy(x => (x.Email.ToLower().Trim().Equals(user.Email.ToLower().Trim()))
+                                 && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
                 var userMedicine = await _unitOfWork.Repository<UserMedicine>()
-                    .FindBy(x => x.User.Email.ToLower().Trim() == normalizedEmail && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date)
-                    .ToListAsync();
-
+                    .FindBy(x => (x.Email.ToLower().Trim().Equals(user.Email.ToLower().Trim()))
+                                 && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
                 return Ok(new
                 {
-                    User = user,
-                    MedicineDays = medicineDays,
+                    User = user, MedicineDays = medicineDays,
                     UserMood = userMood.FirstOrDefault()?.Mood.ToString() ?? "None",
                     IsSuccess = true
                 });
