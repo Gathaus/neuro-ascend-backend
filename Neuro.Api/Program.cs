@@ -104,15 +104,15 @@ try
 
     builder.Host.UseNeuroLogger();
 
-    // if (builder.Environment.IsProduction() || builder.Environment.IsStaging())
-    // {
-    // builder.Services.AddHangfireServices(builder.Configuration.GetConnectionString("PostgreServer")!);
-    // }
-    
-    if (builder.Environment.IsDevelopment())
+    if (builder.Environment.IsProduction() || builder.Environment.IsStaging())
     {
         builder.Services.AddHangfireServices(builder.Configuration.GetConnectionString("PostgreServer")!);
     }
+
+    // if (builder.Environment.IsDevelopment())
+    // {
+    //     builder.Services.AddHangfireServices(builder.Configuration.GetConnectionString("PostgreServer")!);
+    // }
 
 
     var app = builder.Build();
@@ -122,16 +122,16 @@ try
     {
     }
 
-    // if (app.Environment.IsStaging() || app.Environment.IsProduction() )
-    // {
-    //     app.UseCustomHangfireDashboard(app.Services);
-    //     HangfireConfiguration.RestartProcessingJobsBeforeStartingServer(app.Services);
-    // }
-    
-    if (builder.Environment.IsDevelopment())
+    if (app.Environment.IsStaging() || app.Environment.IsProduction())
     {
         app.UseCustomHangfireDashboard(app.Services);
         HangfireConfiguration.RestartProcessingJobsBeforeStartingServer(app.Services);
+    }
+
+    if (builder.Environment.IsDevelopment())
+    {
+        // app.UseCustomHangfireDashboard(app.Services);
+        // HangfireConfiguration.RestartProcessingJobsBeforeStartingServer(app.Services);
     }
 
     app.UseMiddleware<ExceptionMiddleware>();
@@ -150,10 +150,12 @@ try
 catch (Exception ex)
 {
     // Hata yakalandığında çalışacak kod
-    var connectionString = "Host=db-postgresql-nyc3-48272-do-user-15119865-0.c.db.ondigitalocean.com;Port=25060;Database=neuro_ascend_mvp;Username=doadmin;Password=AVNS_AZDUg45ahNV9RWG_cQT;SslMode=VerifyCA;Trust Server Certificate=false;RootCertificate=./ca-certificate.crt;";
+    var connectionString =
+        "Host=db-postgresql-nyc3-48272-do-user-15119865-0.c.db.ondigitalocean.com;Port=25060;Database=neuro_ascend_mvp;Username=doadmin;Password=AVNS_AZDUg45ahNV9RWG_cQT;SslMode=VerifyCA;Trust Server Certificate=false;RootCertificate=./ca-certificate.crt;";
     using (var connection = new NpgsqlConnection(connectionString))
     {
-        var cmdText = @"INSERT INTO logs (userid, email, userfullname, ipaddress, deviceid, version, datetime, errorcode, level, caller, userfriendlymessage, exceptionmessage, exceptionsource, exceptionstacktrace, controller, action, url, httpmethod, requestjson, responsejson, companyid, innerexceptionid) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, @datetime, NULL, 'ERROR', NULL, NULL, @exceptionMessage, @exceptionSource, @exceptionStackTrace, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)";
+        var cmdText =
+            @"INSERT INTO logs (userid, email, userfullname, ipaddress, deviceid, version, datetime, errorcode, level, caller, userfriendlymessage, exceptionmessage, exceptionsource, exceptionstacktrace, controller, action, url, httpmethod, requestjson, responsejson, companyid, innerexceptionid) VALUES (NULL, NULL, NULL, NULL, NULL, NULL, @datetime, NULL, 'ERROR', NULL, NULL, @exceptionMessage, @exceptionSource, @exceptionStackTrace, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)";
 
         using (var command = new NpgsqlCommand(cmdText, connection))
         {
