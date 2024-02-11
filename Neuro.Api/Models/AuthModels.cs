@@ -44,8 +44,7 @@ public class MedicationDayModel
 
 public class TimeOfDayModel
 {
-    public string Time { get; set; }
-    
+    public string Time { get; set; } // "HH:mm" formatında
 }
 
 

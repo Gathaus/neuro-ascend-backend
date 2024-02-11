@@ -106,7 +106,7 @@ try
 
     // if (builder.Environment.IsProduction() || builder.Environment.IsStaging())
     // {
-    //     builder.Services.AddHangfireServices(builder.Configuration.GetConnectionString("PostgreServer")!);
+    // builder.Services.AddHangfireServices(builder.Configuration.GetConnectionString("PostgreServer")!);
     // }
     
     if (builder.Environment.IsDevelopment())

@@ -14,8 +14,8 @@ public class UserMedicine : AuditedBaseEntity<int,int>
     public DateOnly BeginningDate { get; set; }
     public DateOnly EndDate { get; set; }
     
-    public ICollection<MedicationDay> Days { get; set; } 
-    public ICollection<TimeOfDay> Times { get; set; } 
+    public ICollection<MedicationTime> MedicationTimes { get; set; }
+    
 
     public User User { get; set; }
     public Medication Medication { get; set; }

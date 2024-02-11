@@ -31,41 +31,38 @@ public class MedicineReminderJob : IRecurringJob
         try
         {
             var utcNow = DateTime.UtcNow;
-
+        
             // Tüm UserMedicine nesnelerini al
             var userMedicines = await _unitOfWork.Repository<UserMedicine>()
                 .FindBy()
                 .Include(x => x.User)
-                .Include(x => x.Times)
+                .Include(x => x.MedicationTimes)
                 .Include(x => x.Medication)
-                .Include(x => x.Days)
                 .ToListAsync();
-
+        
             foreach (var userMedicine in userMedicines)
             {
                 if (userMedicine.User?.TimeZone == null || userMedicine.User.FirebaseToken == null)
                     continue;
-
-                // Kullanıcının zaman dilimini al ve UTC zamanını kullanıcının yerel zamanına dönüştür
-                TimeZoneInfo userTimeZone = TimeZoneInfo.FindSystemTimeZoneById(userMedicine.User.TimeZone);
-                DateTime userLocalTime = TimeZoneInfo.ConvertTimeFromUtc(utcNow, userTimeZone);
-
+                
+                var now = DateTime.UtcNow;
+        
                 // Kullanıcının yerel gününe göre ilaç günlerini filtrele
-                var medicationDays = userMedicine.Days
-                    .Where(x => x.DayOfWeek == userLocalTime.DayOfWeek)
+                var medicationDays = userMedicine.MedicationTimes
+                    .Where(x => x.WeekDay == utcNow.DayOfWeek)
                     .ToList();
-
+        
                 if (!medicationDays.Any())
                     continue;
-
-                var timeMatch = userMedicine.Times.Any(time =>
-                    userLocalTime.Hour == time.Time.Hour);
+        
+                var timeMatch = userMedicine.MedicationTimes.Any(time =>
+                    utcNow.Hour == time.Time.Hours);
                 
                 await BasicNeuroLogger.LogInfo("Sunucu zamanı: " + utcNow.ToString(CultureInfo.InvariantCulture) +
                                                " Kullanıcı zamanı: " +
-                                               userLocalTime.ToString(CultureInfo.InvariantCulture) +
+                                               utcNow.ToString(CultureInfo.InvariantCulture) +
                                                " Kullanıcı Timezone: " +
-                                               userTimeZone.Id);
+                                               userMedicine.UserId);
                 
                 var medicationName = userMedicine.Medication.Name;
                 if (timeMatch)

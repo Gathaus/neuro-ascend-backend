@@ -1,7 +1,9 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Neuro.Domain.Entities;
+using Neuro.Domain.Extensions;
 
 namespace Neuro.Infrastructure.Ef.Contexts;
 
@@ -29,11 +31,10 @@ namespace Neuro.Infrastructure.Ef.Contexts;
         public DbSet<UserMood> UserMoods { get; set; }
         public DbSet<UserProgress> UserProgresses { get; set; }
         public DbSet<Medication> Medications { get; set; }
-        public DbSet<MedicationDay> MedicationDays { get; set; }
-        public DbSet<TimeOfDay> TimesOfDay { get; set; }
         public DbSet<UserMedicine> UserMedicines { get; set; }
         public DbSet<ActivityImageDescription> ActivityImageDescriptions { get; set; }
         public DbSet<Disease> Diseases { get; set; }
+        public DbSet<MedicationTime> MedicationTimes { get; set; }
         #endregion
 
         #region Methods
@@ -49,10 +50,36 @@ namespace Neuro.Infrastructure.Ef.Contexts;
             var auditedEntityTypes = builder.Model.GetEntityTypes()
                 .Where(t => t.ClrType.IsSubclassOf(typeof(AuditedBaseEntity<,>)));
 
+            builder.Entity<User>()
+                .HasMany(u => u.Diseases) // User sınıfında bir Diseases koleksiyonu olduğunu varsayıyorum
+                .WithOne() // Disease sınıfında geri referans olmadığını varsayıyorum
+                .OnDelete(DeleteBehavior.Cascade); // User silindiğinde ilişkili Diseases de silinir
+
+            // User ve UserMedicine arasındaki ilişkiyi yapılandırma
+            builder.Entity<User>()
+                .HasMany(u => u.UserMedicines)
+                .WithOne(um => um.User)
+                .HasForeignKey(um => um.UserId)
+                .OnDelete(DeleteBehavior.Cascade); // User silindiğinde ilişkili UserMedicines de silinir
+
+            
+            
             foreach (var entityType in auditedEntityTypes)
             {
                 builder.Entity(entityType.Name).Property("Timestamp").IsConcurrencyToken();
-            }            ApplyConfigurationsFromAssembly(builder);
+            }          
+            
+            var timeSpanConverter = new ValueConverter<TimeSpan, TimeSpan>(
+                modelTime => modelTime,
+                providerTime => new TimeSpan(providerTime.Hours, providerTime.Minutes, providerTime.Seconds));
+
+            // MedicationTime entity'si için Time özelliğine ValueConverter'ı uygulama
+            builder.Entity<MedicationTime>().Property(e => e.Time).HasConversion(timeSpanConverter);
+
+
+            ApplyConfigurationsFromAssembly(builder);
+            
+            
             
         }
         public override int SaveChanges()

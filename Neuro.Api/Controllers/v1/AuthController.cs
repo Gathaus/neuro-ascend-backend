@@ -5,6 +5,7 @@ using Neuro.Api.Models;
 using Neuro.Application.Base.Service;
 using Neuro.Application.Helpers;
 using Neuro.Domain.Entities;
+using Neuro.Domain.Entities.Enums;
 using Neuro.Domain.UnitOfWork;
 using NLog.Fluent;
 
@@ -18,7 +19,7 @@ public class AuthController : BaseController
 
     private readonly BaseBusinessService _baseService;
     private readonly IUnitOfWork _unitOfWork;
-    
+
 
     public AuthController(BaseBusinessService baseService, IUnitOfWork unitOfWork)
     {
@@ -78,17 +79,41 @@ public class AuthController : BaseController
                 PillNumber = med.PillNumber,
                 BeginningDate = med.BeginningDate,
                 EndDate = med.EndDate,
-                Days = med.MedicationDays.Select(d => new MedicationDay {DayOfWeek = d.DayOfWeek}).ToList(),
-                Times = med.MedicationTimes.Select(t =>
-                {
-                    var userTime = DateTime.Parse(t.Time);
-
-                    return new TimeOfDay 
-                    {
-                        Time = userTime 
-                    };
-                }).ToList()
+                MedicationTimes = new List<MedicationTime>()
             };
+
+            foreach (var medicationDay in med.MedicationDays)
+            {
+                foreach (var medicationTime in med.MedicationTimes)
+                {
+                    
+                    var now = DateTime.UtcNow;
+                    var userTimeSpan = TimeSpan.Parse(medicationTime.Time);
+                    var minutesToAdd = (int) medicationDay.DayOfWeek * 1440; //1440 = 1 day
+
+                    var userTimeSpanMinutes = userTimeSpan.Add(TimeSpan.FromMinutes(minutesToAdd)).TotalMinutes;
+                                            
+                    var timeZone = TimeZoneExtensions.GetTimeZoneInfo(user.TimeZone) ?? TimeZoneInfo.Local;
+                    
+                    var utcOffsetMinutes = timeZone.GetUtcOffset(now).TotalMinutes;
+                    
+                    var  moduleTimeSpanMinutes = ((userTimeSpanMinutes - utcOffsetMinutes)  % 10080);
+                    
+                    var newTimeSpan = TimeSpan.FromMinutes(moduleTimeSpanMinutes);
+                    var newTimeSpanDays = newTimeSpan.Days;
+                    var weekDay = (DayOfWeek) newTimeSpanDays;
+                    var time = new TimeSpan(newTimeSpanDays,newTimeSpan.Hours,newTimeSpan.Minutes,0);
+
+                    var medicationTimeData = new MedicationTime
+                    {
+                        Time = time,
+                        WeekDay = weekDay
+                    };
+                    userMedicine.MedicationTimes.Add(medicationTimeData);
+                }
+            }
+
+
             user.UserMedicines.Add(userMedicine);
         }
 
@@ -128,17 +153,13 @@ public class AuthController : BaseController
                     await _unitOfWork.SaveChangesAsync();
                 }
 
-                var medicineDays = await _unitOfWork.Repository<MedicationDay>()
-                    .FindBy(x => x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()))
-                    .Select(x => x.DayOfWeek)
-                    .ToListAsync();
 
                 var userMood = await _unitOfWork.Repository<UserMood>()
                     .FindBy(x => (x.Email.ToLower().Trim().Equals(model.Email.ToLower().Trim()))
                                  && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
                 return Ok(new
                 {
-                    User = user, MedicineDays = medicineDays,
+                    User = user,
                     UserMood = userMood.FirstOrDefault()?.Mood.ToString() ?? "None", IsSuccess = true
                 });
             }
@@ -151,6 +172,4 @@ public class AuthController : BaseController
             throw;
         }
     }
-    
-
 }

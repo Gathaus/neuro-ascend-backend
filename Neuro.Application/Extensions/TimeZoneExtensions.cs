@@ -104,8 +104,11 @@ public static class TimeZoneExtensions
     };
 
 
-    public static TimeZoneInfo GetTimeZoneInfo(this string olsonTimeZoneId)
+    public static TimeZoneInfo? GetTimeZoneInfo(this string olsonTimeZoneId)
     {
+        if (string.IsNullOrEmpty(olsonTimeZoneId))
+            return null;
+        
         var windowsTimeZoneId = ConvertOlsonTimeZoneToWindowsTimeZone(olsonTimeZoneId);
         TimeZoneInfo timeZoneInfo;
 

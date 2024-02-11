@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Neuro.Api.Models;
 using Neuro.Application.Base.Service;
+using Neuro.Application.Extensions;
 using Neuro.Domain.Entities;
 using Neuro.Domain.Entities.Enums;
 using Neuro.Domain.UnitOfWork;
@@ -120,7 +121,7 @@ public class AccountController : ControllerBase
         public string Email { get; set; }
         public string? FirebaseToken { get; set; }
     }
-    
+
     public class GoogleTokenForRegister
     {
         public string IdToken { get; set; }
@@ -149,10 +150,7 @@ public class AccountController : ControllerBase
                     await _unitOfWork.SaveChangesAsync();
                 }
 
-                var medicineDays = await _unitOfWork.Repository<MedicationDay>()
-                    .FindBy(x => x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
-                    .Select(x => x.DayOfWeek)
-                    .ToListAsync();
+              
 
                 var userMood = await _unitOfWork.Repository<UserMood>()
                     .FindBy(x => (x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
@@ -162,7 +160,7 @@ public class AccountController : ControllerBase
                                  && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
                 return Ok(new
                 {
-                    User = user, MedicineDays = medicineDays,
+                    User = user,
                     UserMood = userMood.FirstOrDefault()?.Mood.ToString() ?? "None",
                     IsSuccess = true
                 });
@@ -200,11 +198,7 @@ public class AccountController : ControllerBase
                     await _unitOfWork.SaveChangesAsync();
                 }
 
-                var medicineDays = await _unitOfWork.Repository<MedicationDay>()
-                    .FindBy(x => x.Email.ToLower().Trim().Equals(user.Email.ToLower().Trim()))
-                    .Select(x => x.DayOfWeek)
-                    .ToListAsync();
-
+              
                 var userMood = await _unitOfWork.Repository<UserMood>()
                     .FindBy(x => (x.Email.ToLower().Trim().Equals(user.Email.ToLower().Trim()))
                                  && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
@@ -213,19 +207,19 @@ public class AccountController : ControllerBase
                                  && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
                 return Ok(new
                 {
-                    User = user, MedicineDays = medicineDays,
+                    User = user,
                     UserMood = userMood.FirstOrDefault()?.Mood.ToString() ?? "None",
                     IsSuccess = true
                 });
             }
 
-            return BadRequest(new { IsSuccess = false, Message = "User Not Found" });
+            return BadRequest(new {IsSuccess = false, Message = "User Not Found"});
         }
 
         return BadRequest("Invalid Email Address.");
     }
-    
-    
+
+
     [HttpPost("user-info-from-google")]
     public async Task<IActionResult> GetUserInfoFromGoogle([FromBody] GoogleTokenForRegister model)
     {
@@ -247,6 +241,37 @@ public class AccountController : ControllerBase
         }
 
         return BadRequest("Invalid Google ID Token.");
+    }
+
+    [HttpGet("GetUserMedicineReminders")]
+    public async Task<IActionResult> GetUserMedicineReminders(string userEmail)
+    {
+        var utcNow = DateTime.UtcNow;
+
+        var userMedicines = await _unitOfWork.Repository<UserMedicine>()
+            .FindBy(x => x.User.Email == userEmail)
+            .Include(x => x.User)
+            .Include(x => x.Medication)
+            .ToListAsync();
+
+        if (!userMedicines.Any())
+        {
+            return NotFound("Kullanıcı için herhangi bir ilaç hatırlatıcısı bulunamadı.");
+        }
+
+        var reminders = new List<object>();
+        var forgottenMedicines = new List<object>();
+        var medicines = new List<object>(); // İlaç saati gelmiş ama 3 saat geçmemiş ilaçlar için
+
+        foreach (var userMedicine in userMedicines)
+        {
+            var userTimeZone = TimeZoneInfo.FindSystemTimeZoneById(userMedicine.User.TimeZone);
+            var userLocalTime = TimeZoneInfo.ConvertTimeFromUtc(utcNow, userTimeZone);
+
+
+        }
+
+        return Ok(new {Reminders = reminders, ForgottenMedicines = forgottenMedicines, Medicines = medicines});
     }
 
     [HttpPost("setUserMood")]

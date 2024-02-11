@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Neuro.Infrastructure.Ef.Contexts;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Neuro.Infrastructure.Ef.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240210221426_f4312318")]
+    partial class f4312318
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -483,6 +486,30 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.ToTable("Medications");
                 });
 
+            modelBuilder.Entity("Neuro.Domain.Entities.MedicationDay", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<int>("UserMedicineId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserMedicineId");
+
+                    b.ToTable("MedicationDays");
+                });
+
             modelBuilder.Entity("Neuro.Domain.Entities.MedicationTime", b =>
                 {
                     b.Property<int>("Id")
@@ -491,13 +518,10 @@ namespace Neuro.Infrastructure.Ef.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<TimeSpan>("Time")
-                        .HasColumnType("interval");
+                    b.Property<DateTime>("Time")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int?>("UserMedicineId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("WeekDay")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -767,6 +791,27 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.ToTable("UserProgresses");
                 });
 
+            modelBuilder.Entity("TimeOfDay", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Time")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("UserMedicineId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserMedicineId");
+
+                    b.ToTable("TimesOfDay");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -835,6 +880,17 @@ namespace Neuro.Infrastructure.Ef.Migrations
                         .WithMany("Diseases")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Neuro.Domain.Entities.MedicationDay", b =>
+                {
+                    b.HasOne("Neuro.Domain.Entities.UserMedicine", "UserMedicine")
+                        .WithMany("Days")
+                        .HasForeignKey("UserMedicineId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserMedicine");
                 });
 
             modelBuilder.Entity("Neuro.Domain.Entities.MedicationTime", b =>
@@ -929,6 +985,17 @@ namespace Neuro.Infrastructure.Ef.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("TimeOfDay", b =>
+                {
+                    b.HasOne("Neuro.Domain.Entities.UserMedicine", "UserMedicine")
+                        .WithMany("Times")
+                        .HasForeignKey("UserMedicineId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserMedicine");
+                });
+
             modelBuilder.Entity("Neuro.Domain.Entities.Medication", b =>
                 {
                     b.Navigation("UserMedicines");
@@ -943,7 +1010,11 @@ namespace Neuro.Infrastructure.Ef.Migrations
 
             modelBuilder.Entity("Neuro.Domain.Entities.UserMedicine", b =>
                 {
+                    b.Navigation("Days");
+
                     b.Navigation("MedicationTimes");
+
+                    b.Navigation("Times");
                 });
 #pragma warning restore 612, 618
         }
