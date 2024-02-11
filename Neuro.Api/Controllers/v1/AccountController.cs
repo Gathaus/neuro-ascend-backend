@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Neuro.Api.Models;
 using Neuro.Application.Base.Service;
 using Neuro.Application.Extensions;
+using Neuro.Application.Managers.Abstract;
 using Neuro.Domain.Entities;
 using Neuro.Domain.Entities.Enums;
 using Neuro.Domain.UnitOfWork;
@@ -27,15 +28,17 @@ public class AccountController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly IConfiguration _config;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserService _userService;
 
     public AccountController(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager,
-        IConfiguration configuration, IConfiguration config, IUnitOfWork unitOfWork)
+        IConfiguration configuration, IConfiguration config, IUnitOfWork unitOfWork, IUserService userService)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _configuration = configuration;
         _config = config;
         _unitOfWork = unitOfWork;
+        _userService = userService;
     }
 
     [HttpPost("register")]
@@ -155,14 +158,14 @@ public class AccountController : ControllerBase
                 var userMood = await _unitOfWork.Repository<UserMood>()
                     .FindBy(x => (x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
                                  && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
-                var userMedicine = await _unitOfWork.Repository<UserMedicine>()
-                    .FindBy(x => (x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
-                                 && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
+               var userMedicines = _userService.GetUserMedicinesAsync(user.Id);
+                
                 return Ok(new
                 {
                     User = user,
                     UserMood = userMood.FirstOrDefault()?.Mood.ToString() ?? "None",
-                    IsSuccess = true
+                    IsSuccess = true,
+                    Medicines = userMedicines.Result.Medicines
                 });
             }
 

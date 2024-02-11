@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Neuro.Api.Models;
 using Neuro.Application.Base.Service;
 using Neuro.Application.Helpers;
+using Neuro.Application.Managers.Abstract;
 using Neuro.Domain.Entities;
 using Neuro.Domain.Entities.Enums;
 using Neuro.Domain.UnitOfWork;
@@ -19,12 +20,14 @@ public class AuthController : BaseController
 
     private readonly BaseBusinessService _baseService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserService _userService;
 
 
-    public AuthController(BaseBusinessService baseService, IUnitOfWork unitOfWork)
+    public AuthController(BaseBusinessService baseService, IUnitOfWork unitOfWork, IUserService userService)
     {
         _baseService = baseService;
         _unitOfWork = unitOfWork;
+        _userService = userService;
     }
 
     #endregion
@@ -120,14 +123,14 @@ public class AuthController : BaseController
         await _unitOfWork.Repository<User>().InsertAsync(user);
         var result = await _unitOfWork.SaveChangesAsync();
 
+        var medicinesInfo = _userService.GetUserMedicinesWithoutForgettenMedicinesAsync(user.Id);
         if (result > 0)
         {
             return Ok(new
             {
                 IsSuccess = true, Message = "Registration successful",
                 UserId = user.Id, Email = user.Email, User = user,
-                UserMood = "None",
-                MedicineDays = model.Medications.SelectMany(x => x.MedicationDays).Select(x => x.DayOfWeek).ToList()
+                Medicines = medicinesInfo.Result.Medicines,
             });
         }
 

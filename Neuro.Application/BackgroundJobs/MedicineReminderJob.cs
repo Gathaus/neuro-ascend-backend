@@ -45,8 +45,6 @@ public class MedicineReminderJob : IRecurringJob
                 if (userMedicine.User?.TimeZone == null || userMedicine.User.FirebaseToken == null)
                     continue;
                 
-                var now = DateTime.UtcNow;
-        
                 // Kullanıcının yerel gününe göre ilaç günlerini filtrele
                 var medicationDays = userMedicine.MedicationTimes
                     .Where(x => x.WeekDay == utcNow.DayOfWeek)
