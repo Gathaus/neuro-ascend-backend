@@ -123,14 +123,15 @@ public class AuthController : BaseController
         await _unitOfWork.Repository<User>().InsertAsync(user);
         var result = await _unitOfWork.SaveChangesAsync();
 
-        var medicinesInfo = _userService.GetUserMedicinesWithoutForgettenMedicinesAsync(user.Id);
+        var medicinesInfo = await _userService.GetUserMedicinesWithoutForgettenMedicinesAsync(user.Id);
         if (result > 0)
         {
             return Ok(new
             {
                 IsSuccess = true, Message = "Registration successful",
                 UserId = user.Id, Email = user.Email, User = user,
-                Medicines = medicinesInfo.Result.Medicines,
+                Medicines = medicinesInfo.Medicines,
+                NextMedicines = medicinesInfo.NextMedicines
             });
         }
 

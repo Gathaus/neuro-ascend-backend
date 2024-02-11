@@ -158,14 +158,16 @@ public class AccountController : ControllerBase
                 var userMood = await _unitOfWork.Repository<UserMood>()
                     .FindBy(x => (x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
                                  && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
-               var userMedicines = _userService.GetUserMedicinesAsync(user.Id);
+               var medicinesInfo = await _userService.GetUserMedicinesAsync(user.Id);
                 
                 return Ok(new
                 {
                     User = user,
                     UserMood = userMood.FirstOrDefault()?.Mood.ToString() ?? "None",
                     IsSuccess = true,
-                    Medicines = userMedicines.Result.Medicines
+                    Medicines = medicinesInfo.Medicines,
+                    NextMedicines = medicinesInfo.NextMedicines,
+                    ForgottenMedicines = medicinesInfo.ForgottenMedicines
                 });
             }
 
