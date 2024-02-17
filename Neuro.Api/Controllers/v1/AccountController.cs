@@ -143,10 +143,11 @@ public class AccountController : ControllerBase
             var userEntity = await _unitOfWork.Repository<User>()
                 .FindBy(x => x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
                 .FirstOrDefaultAsync();
+            Check.EntityExists(userEntity, "User not found");
             
             var userDto = new UserDto()
             {
-                Id = userEntity.Id,
+                Id = userEntity!.Id,
                 FirebaseToken = userEntity.FirebaseToken,
                 FirstName = userEntity.FirstName,
                 LastName = userEntity.LastName,
@@ -155,6 +156,7 @@ public class AccountController : ControllerBase
                 AlzheimerStage = userEntity.AlzheimerStage,
                 CountryCode = userEntity.CountryCode,
                 MobileNumber = userEntity.MobileNumber,
+                ImageUrl = userEntity.ImageUrl ?? "test/default-user.jpg",
                 TimeZone = userEntity.TimeZone,
             };
 

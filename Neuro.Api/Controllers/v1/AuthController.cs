@@ -58,7 +58,7 @@ public class AuthController : BaseController
             BloodType = model.BloodGroup,
             Age = model.Age,
             Address = model.Address,
-            ImageUrl = model.ImageUrl,
+            ImageUrl = model.ImageUrl ?? "test/default-user.jpg",
             AlzheimerStage = model.AlzheimerStage,
             HavePet = model.HasPet,
             WantVirtualPet = model.WantsVirtualPet,
