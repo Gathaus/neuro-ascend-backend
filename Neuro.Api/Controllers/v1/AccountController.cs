@@ -139,17 +139,32 @@ public class AccountController : ControllerBase
             // var user = await _unitOfWork.Repository<User>().FindBy(x => x.Email.Equals(payload.Email,
             //     StringComparison.OrdinalIgnoreCase)).FirstOrDefaultAsync();
 
-            var user = await _unitOfWork.Repository<User>()
+            
+            var userEntity = await _unitOfWork.Repository<User>()
                 .FindBy(x => x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
                 .FirstOrDefaultAsync();
+            
+            var userDto = new UserDto()
+            {
+                Id = userEntity.Id,
+                FirebaseToken = userEntity.FirebaseToken,
+                FirstName = userEntity.FirstName,
+                LastName = userEntity.LastName,
+                Email = userEntity.Email,
+                Age = userEntity.Age,
+                AlzheimerStage = userEntity.AlzheimerStage,
+                CountryCode = userEntity.CountryCode,
+                MobileNumber = userEntity.MobileNumber,
+                TimeZone = userEntity.TimeZone,
+            };
 
 
-            if (user != null)
+            if (userEntity != null)
             {
                 if (model.FirebaseToken != null)
                 {
-                    user.FirebaseToken = model.FirebaseToken;
-                    _unitOfWork.Repository<User>().Update(user);
+                    userEntity.FirebaseToken = model.FirebaseToken;
+                    _unitOfWork.Repository<User>().Update(userEntity);
                     await _unitOfWork.SaveChangesAsync();
                 }
 
@@ -158,11 +173,11 @@ public class AccountController : ControllerBase
                 var userMood = await _unitOfWork.Repository<UserMood>()
                     .FindBy(x => (x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
                                  && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
-               var medicinesInfo = await _userService.GetUserMedicinesAsync(user.Id);
+               var medicinesInfo = await _userService.GetUserMedicinesAsync(userEntity.Id);
                 
                 return Ok(new
                 {
-                    User = user,
+                    User = userDto,
                     UserMood = userMood.FirstOrDefault()?.Mood.ToString() ?? "None",
                     IsSuccess = true,
                     Medicines = medicinesInfo.Medicines,
