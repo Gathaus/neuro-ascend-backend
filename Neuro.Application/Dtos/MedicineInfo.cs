@@ -5,4 +5,5 @@ public class MedicineInfo
     public string MedicationName { get; set; }
     public TimeSpan Time { get; set; }
     public int PillNumber { get; set; }
+    public string Usage { get; set; }
 }

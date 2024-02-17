@@ -43,7 +43,8 @@ public class UserService : IUserService
                     {
                         MedicationName = userMedicine.Medication.Name,
                         Time = medicinetime.Time,
-                        PillNumber = userMedicine.PillNumber
+                        PillNumber = userMedicine.PillNumber,
+                        Usage = userMedicine.Usage
                     });
                 }
                 else if (timeDifference > 1)
@@ -57,7 +58,8 @@ public class UserService : IUserService
                         {
                             MedicationName = userMedicine.Medication.Name,
                             Time = medicinetime.Time,
-                            PillNumber = userMedicine.PillNumber
+                            PillNumber = userMedicine.PillNumber,
+                            Usage = userMedicine.Usage
                         });
                     }
                 }
@@ -67,7 +69,8 @@ public class UserService : IUserService
                     {
                         MedicationName = userMedicine.Medication.Name,
                         Time = medicinetime.Time,
-                        PillNumber = userMedicine.PillNumber
+                        PillNumber = userMedicine.PillNumber,
+                        Usage = userMedicine.Usage
                     });
                 }
             }
@@ -106,7 +109,8 @@ public class UserService : IUserService
                     {
                         MedicationName = userMedicine.Medication.Name,
                         Time = medicinetime.Time,
-                        PillNumber = userMedicine.PillNumber
+                        PillNumber = userMedicine.PillNumber,
+                        Usage = userMedicine.Usage
                     });
                 }
                 else if (timeDifference > 1)
@@ -120,7 +124,8 @@ public class UserService : IUserService
                         {
                             MedicationName = userMedicine.Medication.Name,
                             Time = medicinetime.Time,
-                            PillNumber = userMedicine.PillNumber
+                            PillNumber = userMedicine.PillNumber,
+                            Usage = userMedicine.Usage
                         });
                     }
                 }
