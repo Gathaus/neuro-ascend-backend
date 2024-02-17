@@ -41,6 +41,7 @@ public class UserService : IUserService
                 {
                     result.Medicines.Add(new MedicineInfo
                     {
+                        Id = medicinetime.Id,
                         MedicationName = userMedicine.Medication.Name,
                         Time = medicinetime.Time,
                         PillNumber = userMedicine.PillNumber,
@@ -56,6 +57,7 @@ public class UserService : IUserService
                     {
                         result.NextMedicines.Add(new MedicineInfo
                         {
+                            Id = medicinetime.Id,
                             MedicationName = userMedicine.Medication.Name,
                             Time = medicinetime.Time,
                             PillNumber = userMedicine.PillNumber,
@@ -67,6 +69,7 @@ public class UserService : IUserService
                 {
                     result.ForgottenMedicines.Add(new MedicineInfo
                     {
+                        Id = medicinetime.Id,
                         MedicationName = userMedicine.Medication.Name,
                         Time = medicinetime.Time,
                         PillNumber = userMedicine.PillNumber,
@@ -107,6 +110,7 @@ public class UserService : IUserService
                 {
                     result.Medicines.Add(new MedicineInfo
                     {
+                        Id = medicinetime.Id,
                         MedicationName = userMedicine.Medication.Name,
                         Time = medicinetime.Time,
                         PillNumber = userMedicine.PillNumber,
@@ -122,6 +126,7 @@ public class UserService : IUserService
                     {
                         result.NextMedicines.Add(new MedicineInfo
                         {
+                            Id = medicinetime.Id,
                             MedicationName = userMedicine.Medication.Name,
                             Time = medicinetime.Time,
                             PillNumber = userMedicine.PillNumber,
