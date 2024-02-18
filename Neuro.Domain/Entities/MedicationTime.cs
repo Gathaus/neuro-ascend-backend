@@ -6,6 +6,8 @@ public class MedicationTime : BaseEntity<int>
     public DayOfWeek WeekDay { get; set; }
 
     public bool IsTaken { get; set; }
+
+    public int WeekRetry { get; set; }
     
     
 }
