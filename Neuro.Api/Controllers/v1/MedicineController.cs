@@ -23,20 +23,6 @@ public class MedicineController : BaseController
         _baseService = baseService;
         _unitOfWork = unitOfWork;
     }
-
-    [HttpPost("MedicineTaken")]
-    public async Task<IActionResult> MedicineTaken([FromBody] int medicineTimeId)
-    {
-        var medicineTime = await _unitOfWork.Repository<MedicationTime>()
-            .FindBy(x => x.Id == medicineTimeId)
-            .Select(x=> new MedicineTimeData{Id = x.Id,IsTaken = x.IsTaken})
-            .FirstOrDefaultAsync();
-        Check.EntityExists(medicineTime, "Medicine time not found");
-        medicineTime.IsTaken = true;
-        await _unitOfWork.SaveChangesAsync();
-        return Ok(new {IsSuccess = true, Message = "Medicine taken"});
-    }
-
     [HttpPost("MedicineTakenList")]
     public async Task<IActionResult> MedicineTaken([FromBody] List<int> medicineTimeIds)
     {
