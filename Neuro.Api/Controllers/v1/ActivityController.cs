@@ -1,12 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Neuro.Api.Models;
 using Neuro.Domain.Entities;
 using Neuro.Domain.UnitOfWork;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Neuro.Api.Controllers.v1;
 

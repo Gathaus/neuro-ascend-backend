@@ -1,4 +1,3 @@
-using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Neuro.Application.Base.Result;
 

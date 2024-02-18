@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Neuro.Domain.Entities;
 
 #region Entity of TPrimaryKey

@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Neuro.Application.BackgroundJobs;
 using Neuro.Application.Base.Service;
 using Neuro.Application.Managers.Abstract;
 using Neuro.Application.Managers.Concrete;

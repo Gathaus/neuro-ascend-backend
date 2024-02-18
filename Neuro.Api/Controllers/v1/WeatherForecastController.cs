@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +7,6 @@ using Neuro.Application.Dtos.CustomResponses;
 using Neuro.Application.Services.WeatherForecast;
 using Neuro.Domain.Entities;
 using Neuro.Domain.UnitOfWork;
-using Neuro.Infrastructure.Ef.Contexts;
 
 
 namespace Neuro.Api.Controllers.v1;

@@ -6,10 +6,8 @@ using Neuro.Application.Attributes;
 using Neuro.Application.Base.BackgroundJobs;
 using Neuro.Application.Managers.Concrete;
 using Neuro.Domain.Entities;
-using Neuro.Domain.Logging;
 using Neuro.Domain.UnitOfWork;
 using Neuro.Infrastructure.Logging;
-using NLog.Fluent;
 
 namespace Neuro.Application.BackgroundJobs;
 

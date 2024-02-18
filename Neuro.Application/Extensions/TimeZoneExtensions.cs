@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-
 public static class TimeZoneExtensions
 {
     private static readonly Dictionary<string, string> OlsonWindowsTimeZones = new Dictionary<string, string>()

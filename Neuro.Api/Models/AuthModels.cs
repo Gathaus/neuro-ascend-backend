@@ -1,4 +1,3 @@
-using Neuro.Domain.Entities;
 using Neuro.Domain.Entities.Enums;
 
 namespace Neuro.Api.Models;

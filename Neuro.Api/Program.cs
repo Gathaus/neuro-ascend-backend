@@ -1,8 +1,6 @@
 using System.Text;
-using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 using Neuro.Api.Configurations;
 using Neuro.Api.Managers;
@@ -13,10 +11,8 @@ using Neuro.Infrastructure.ApiDocumentation;
 using Neuro.Infrastructure.Ef;
 using Neuro.Infrastructure.Ef.Contexts;
 using Neuro.Infrastructure.Hangfire;
-using Neuro.Infrastructure.Logging;
 using Neuro.Infrastructure.MessageBus.Configuration;
 using Npgsql;
-using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;

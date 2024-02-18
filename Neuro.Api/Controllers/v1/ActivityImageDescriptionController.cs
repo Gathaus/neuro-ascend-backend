@@ -2,9 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Neuro.Domain.Entities;
 using Neuro.Domain.UnitOfWork;
-using System;
-using System.Threading.Tasks;
-using Neuro.Api.Models; // Eğer ActivityImageDescription için DTO kullanılacaksa bu kütüphaneyi ekleyin.
+
+// Eğer ActivityImageDescription için DTO kullanılacaksa bu kütüphaneyi ekleyin.
 
 namespace Neuro.Api.Controllers.v1
 {

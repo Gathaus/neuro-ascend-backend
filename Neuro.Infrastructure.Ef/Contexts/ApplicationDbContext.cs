@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Neuro.Domain.Entities;
-using Neuro.Domain.Extensions;
 
 namespace Neuro.Infrastructure.Ef.Contexts;
 

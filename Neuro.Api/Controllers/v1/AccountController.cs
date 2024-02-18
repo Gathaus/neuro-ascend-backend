@@ -3,19 +3,15 @@ using System.Security.Claims;
 using System.Text;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Neuro.Api.Models;
-using Neuro.Application.Base.Service;
 using Neuro.Application.Extensions;
 using Neuro.Application.Managers.Abstract;
 using Neuro.Domain.Entities;
-using Neuro.Domain.Entities.Enums;
 using Neuro.Domain.UnitOfWork;
-using Newtonsoft.Json;
 
 namespace Neuro.Api.Controllers.v1;
 

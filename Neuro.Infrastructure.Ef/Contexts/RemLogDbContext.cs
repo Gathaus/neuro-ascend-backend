@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Neuro.Domain.Entities;
 
 namespace Neuro.Infrastructure.Ef.Contexts
 {
