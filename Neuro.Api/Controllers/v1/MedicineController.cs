@@ -24,10 +24,10 @@ public class MedicineController : BaseController
         _unitOfWork = unitOfWork;
     }
     [HttpPost("MedicineTakenList")]
-    public async Task<IActionResult> MedicineTaken([FromBody] List<int> medicineTimeIds)
+    public async Task<IActionResult> MedicineTaken([FromBody] MedicineTimeTakenDto model)
     {
         var medicineTimes = await _unitOfWork.Repository<MedicationTime>()
-            .FindBy(x => medicineTimeIds.Contains(x.Id))
+            .FindBy(x => model.MedicineTimeIds.Contains(x.Id))
             .Select(x=> new MedicineTimeData{Id = x.Id,IsTaken = x.IsTaken})
             .ToListAsync();
         Check.EntityExists(medicineTimes, "Medicine time not found");
