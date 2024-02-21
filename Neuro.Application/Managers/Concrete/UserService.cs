@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Neuro.Application.Dtos;
 using Neuro.Application.Managers.Abstract;
 using Neuro.Domain.Entities;
+using Neuro.Domain.Entities.Enums;
 using Neuro.Domain.UnitOfWork;
 
 public class UserService : IUserService
@@ -81,8 +82,8 @@ public class UserService : IUserService
 
         return result;
     }
-    
-        public async Task<UserMedicineResult> GetUserMedicinesWithoutForgettenMedicinesAsync(int userId)
+
+    public async Task<UserMedicineResult> GetUserMedicinesWithoutForgettenMedicinesAsync(int userId)
     {
         var utcNow = DateTime.UtcNow;
         var result = new UserMedicineResult();
@@ -140,4 +141,104 @@ public class UserService : IUserService
         return result;
     }
 
+    public async Task<bool> UpdateUserTargetAsync(int userId, UserTargetTypeEnum targetType, short number = 1)
+    {
+        try
+        {
+            var date = DateTime.UtcNow;
+            var userTarget = await _unitOfWork.Repository<UserTarget>()
+                .FindBy(x => x.UserId == userId
+                             && x.CreatedDate.Date == date.Date).FirstOrDefaultAsync();
+        
+            if (userTarget == null)
+            {
+
+                var lastUserTarget = await _unitOfWork.Repository<UserTarget>()
+                    .FindBy(x => x.UserId == userId)
+                    .OrderByDescending(x => x.Id)
+                    .FirstOrDefaultAsync();
+
+                int targetGroupId;
+                if (lastUserTarget != null)
+                {
+                    targetGroupId = lastUserTarget.TargetGroupId;
+                }
+                else
+                {
+                    // If user didn't have any target before, get the first target group id from the database
+                    //TODO targetgroup must be decided while registiring and save it to UserEntity
+                    targetGroupId = await _unitOfWork.Repository<TargetGroup>()
+                        .FindBy()
+                        .OrderBy(x => x.Id)
+                        .Select(x => x.Id)
+                        .FirstOrDefaultAsync();
+                }
+
+                var newUserTarget = new UserTarget
+                {
+                    UserId = userId,
+                    TargetGroupId = targetGroupId
+                };
+                switch (targetType)
+                {
+                    case UserTargetTypeEnum.Activity:
+                        newUserTarget.ActivityDone += number;
+                        break;
+                    case UserTargetTypeEnum.Exercise:
+                        newUserTarget.ExerciseDone += number;
+                        break;
+                    case UserTargetTypeEnum.Medicine:
+                        newUserTarget.MedicineTaken += number;
+                        break;
+                    case UserTargetTypeEnum.MorningFood:
+                        newUserTarget.MorningFoodTaken += number;
+                        break;
+                    case UserTargetTypeEnum.EveningFood:
+                        newUserTarget.EveningFoodTaken += number;
+                        break;
+                    case UserTargetTypeEnum.Article:
+                        newUserTarget.ArticleDone += number;
+                        break;
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+
+            }
+            else{
+            
+                switch (targetType)
+                {
+                    case UserTargetTypeEnum.Activity:
+                        userTarget.ActivityDone += number;
+                        break;
+                    case UserTargetTypeEnum.Exercise:
+                        userTarget.ExerciseDone += number;
+                        break;
+                    case UserTargetTypeEnum.Medicine:
+                        userTarget.MedicineTaken += number;
+                        break;
+                    case UserTargetTypeEnum.MorningFood:
+                        userTarget.MorningFoodTaken += number;
+                        break;
+                    case UserTargetTypeEnum.EveningFood:
+                        userTarget.EveningFoodTaken += number;
+                        break;
+                    case UserTargetTypeEnum.Article:
+                        userTarget.ArticleDone += number;
+                        break;
+                }
+
+                _unitOfWork.Repository<UserTarget>().Update(userTarget);
+                await _unitOfWork.SaveChangesAsync();
+
+
+            }
+            return true;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 }
