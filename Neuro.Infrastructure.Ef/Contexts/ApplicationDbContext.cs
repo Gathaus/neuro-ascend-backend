@@ -34,6 +34,8 @@ namespace Neuro.Infrastructure.Ef.Contexts;
         public DbSet<ActivityImageDescription> ActivityImageDescriptions { get; set; }
         public DbSet<Disease> Diseases { get; set; }
         public DbSet<MedicationTime> MedicationTimes { get; set; }
+        public DbSet<UserTarget> UserTargets { get; set; }
+        public DbSet<TargetGroup> TargetGroups { get; set; }
         #endregion
 
         #region Methods
