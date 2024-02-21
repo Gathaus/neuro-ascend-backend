@@ -29,6 +29,8 @@ public class MedicineReminderJob : IRecurringJob
         try
         {
             var utcNow = DateTime.UtcNow;
+            
+            //TODO günün ilk saati ise kullanıcıya medicine target ata
         
             // Tüm UserMedicine nesnelerini al
             var userMedicines = await _unitOfWork.Repository<UserMedicine>()

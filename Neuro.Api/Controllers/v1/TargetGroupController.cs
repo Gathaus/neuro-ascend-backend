@@ -58,7 +58,6 @@ namespace Neuro.Api.Controllers.v1
                 if (existingTargetGroup == null)
                     return NotFound();
 
-                existingTargetGroup.MedicineTarget = targetGroup.MedicineTarget ?? existingTargetGroup.MedicineTarget;
                 existingTargetGroup.MorningFoodTarget = targetGroup.MorningFoodTarget ?? existingTargetGroup.MorningFoodTarget;
                 existingTargetGroup.EveningFoodTarget = targetGroup.EveningFoodTarget ?? existingTargetGroup.EveningFoodTarget;
                 existingTargetGroup.ActivityTarget = targetGroup.ActivityTarget ?? existingTargetGroup.ActivityTarget;

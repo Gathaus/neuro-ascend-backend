@@ -268,7 +268,7 @@ public class UserService : IUserService
         var userTargetsDto = new UserTargetsDto
         {
             Medicine = NumericExtensions.Percentage(userTarget.MedicineTaken ?? Decimal.Zero,
-                targetGroup.MedicineTarget ?? Decimal.Zero, 0, 100),
+                userTarget.MedicineTarget ?? Decimal.Zero, 0, 100),
             Food = NumericExtensions.Percentage(totalFoodTaken, totalFoodTarget,0,100),
             Exercise =  NumericExtensions.Percentage(totalExerciseAndActivity, totalExerciseAndActivityTarget,0,100)
         };

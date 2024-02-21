@@ -5,6 +5,7 @@ public class UserTarget: BaseEntity<int>
     public int UserId { get; set; }
     public int TargetGroupId { get; set; }
     public short? MedicineTaken { get; set; }
+    public short? MedicineTarget { get; set; }
     public short? MorningFoodTaken { get; set; }
     public short? EveningFoodTaken { get; set; }
     public short? ActivityDone { get; set; }
