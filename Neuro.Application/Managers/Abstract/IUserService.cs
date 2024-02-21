@@ -1,3 +1,4 @@
+using Neuro.Api.Models;
 using Neuro.Application.Dtos;
 using Neuro.Domain.Entities.Enums;
 
@@ -8,6 +9,8 @@ public interface IUserService
         Task<UserMedicineResult> GetUserMedicinesAsync(int userId);
         Task<UserMedicineResult> GetUserMedicinesWithoutForgettenMedicinesAsync(int userId);
         Task<bool> UpdateUserTargetAsync(int userId, UserTargetTypeEnum targetType, short number = 1);
+
+        Task<UserTargetsDto> CalculateUserTargetsAsync(int userId);
 
 
 }

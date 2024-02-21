@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Neuro.Api.Models;
 using Neuro.Application.Dtos;
+using Neuro.Application.Extensions;
 using Neuro.Application.Managers.Abstract;
 using Neuro.Domain.Entities;
 using Neuro.Domain.Entities.Enums;
@@ -149,10 +151,9 @@ public class UserService : IUserService
             var userTarget = await _unitOfWork.Repository<UserTarget>()
                 .FindBy(x => x.UserId == userId
                              && x.CreatedDate.Date == date.Date).FirstOrDefaultAsync();
-        
+
             if (userTarget == null)
             {
-
                 var lastUserTarget = await _unitOfWork.Repository<UserTarget>()
                     .FindBy(x => x.UserId == userId)
                     .OrderByDescending(x => x.Id)
@@ -202,10 +203,9 @@ public class UserService : IUserService
                 }
 
                 await _unitOfWork.SaveChangesAsync();
-
             }
-            else{
-            
+            else
+            {
                 switch (targetType)
                 {
                     case UserTargetTypeEnum.Activity:
@@ -230,9 +230,8 @@ public class UserService : IUserService
 
                 _unitOfWork.Repository<UserTarget>().Update(userTarget);
                 await _unitOfWork.SaveChangesAsync();
-
-
             }
+
             return true;
         }
         catch (Exception e)
@@ -240,5 +239,40 @@ public class UserService : IUserService
             Console.WriteLine(e);
             throw;
         }
+    }
+
+    public async Task<UserTargetsDto> CalculateUserTargetsAsync(int userId)
+    {
+        var userTarget = await _unitOfWork.Repository<UserTarget>()
+            .FindBy(x => x.UserId == userId && x.CreatedDate.Date == DateTime.UtcNow.Date)
+            .SingleOrDefaultAsync();
+
+        if (userTarget == null)
+            return new UserTargetsDto();
+
+        var targetGroup = await _unitOfWork.Repository<TargetGroup>()
+            .FindBy(x => x.Id == userTarget.TargetGroupId)
+            .FirstOrDefaultAsync();
+
+        if (targetGroup == null)
+        {
+            return new UserTargetsDto();
+        }
+        
+        
+        var totalFoodTarget = (targetGroup.MorningFoodTarget + targetGroup.EveningFoodTarget) ?? Decimal.Zero;
+        var totalFoodTaken = (userTarget.MorningFoodTaken + userTarget.EveningFoodTaken) ?? Decimal.Zero;
+        var totalExerciseAndActivity = (userTarget.ExerciseDone + userTarget.ActivityDone) ?? Decimal.Zero;
+        var totalExerciseAndActivityTarget = (targetGroup.ExerciseTarget + targetGroup.ActivityTarget) ?? Decimal.Zero;
+
+        var userTargetsDto = new UserTargetsDto
+        {
+            Medicine = NumericExtensions.Percentage(userTarget.MedicineTaken ?? Decimal.Zero,
+                targetGroup.MedicineTarget ?? Decimal.Zero, 0, 100, 35),
+            Food = NumericExtensions.Percentage(totalFoodTaken, totalFoodTarget,0,100,35),
+            Exercise =  NumericExtensions.Percentage(totalExerciseAndActivity, totalExerciseAndActivityTarget,0,100,35)
+        };
+
+        return userTargetsDto;
     }
 }
