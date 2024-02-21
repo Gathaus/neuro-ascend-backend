@@ -172,7 +172,8 @@ public class AccountController : ControllerBase
                     .FindBy(x => (x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
                                  && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
                var medicinesInfo = await _userService.GetUserMedicinesAsync(userEntity.Id);
-                
+               var userTargets = await _userService.CalculateUserTargetsAsync(userDto.Id);
+
                 return Ok(new
                 {
                     User = userDto,
@@ -180,7 +181,8 @@ public class AccountController : ControllerBase
                     IsSuccess = true,
                     Medicines = medicinesInfo.Medicines,
                     NextMedicines = medicinesInfo.NextMedicines,
-                    ForgottenMedicines = medicinesInfo.ForgottenMedicines
+                    ForgottenMedicines = medicinesInfo.ForgottenMedicines,
+                    UserTargets = userTargets
                 });
             }
 
@@ -223,10 +225,12 @@ public class AccountController : ControllerBase
                 var userMedicine = await _unitOfWork.Repository<UserMedicine>()
                     .FindBy(x => (x.Email.ToLower().Trim().Equals(user.Email.ToLower().Trim()))
                                  && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
+                var userTargets = await _userService.CalculateUserTargetsAsync(user.Id);
                 return Ok(new
                 {
                     User = user,
                     UserMood = userMood.FirstOrDefault()?.Mood.ToString() ?? "None",
+                    UserTargets = userTargets,
                     IsSuccess = true
                 });
             }

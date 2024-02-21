@@ -122,12 +122,21 @@ public class AuthController : BaseController
         var medicinesInfo = await _userService.GetUserMedicinesWithoutForgettenMedicinesAsync(user.Id);
         if (result > 0)
         {
+            var userTargets = new UserTargetsDto()
+            {
+                Exercise = 0,
+                Food = 0,
+                Medicine = 0
+
+            };
             return Ok(new
             {
                 IsSuccess = true, Message = "Registration successful",
                 UserId = user.Id, Email = user.Email, User = user,
                 Medicines = medicinesInfo.Medicines,
-                NextMedicines = medicinesInfo.NextMedicines
+                NextMedicines = medicinesInfo.NextMedicines,
+                UserTargets = userTargets
+
             });
         }
 
