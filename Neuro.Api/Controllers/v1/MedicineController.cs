@@ -28,14 +28,16 @@ public class MedicineController : BaseController
     {
         var medicineTimes = await _unitOfWork.Repository<MedicationTime>()
             .FindBy(x => model.MedicineTimeIds.Contains(x.Id))
-            .Select(x=> new MedicineTimeData{Id = x.Id,IsTaken = x.IsTaken})
             .ToListAsync();
         Check.EntityExists(medicineTimes, "Medicine time not found");
         foreach (var medicineTime in medicineTimes)
         {
             medicineTime.IsTaken = true;
+            _unitOfWork.Repository<MedicationTime>().Update(medicineTime);
+
         }
         await _unitOfWork.SaveChangesAsync();
+        
         return Ok(new {IsSuccess = true, Message = "Medicine taken"});
     }
 

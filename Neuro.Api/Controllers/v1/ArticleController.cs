@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Neuro.Domain.Entities;
 using Neuro.Domain.UnitOfWork;
 using Neuro.Api.Extensions;
+using Neuro.Application.Managers.Abstract;
+using Neuro.Domain.Entities.Enums;
 
 namespace Neuro.Api.Controllers.v1
 {
@@ -11,10 +13,12 @@ namespace Neuro.Api.Controllers.v1
     public class ArticleController : BaseController
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IUserService _userService;
 
-        public ArticleController(IUnitOfWork unitOfWork)
+        public ArticleController(IUnitOfWork unitOfWork, IUserService userService)
         {
             _unitOfWork = unitOfWork;
+            _userService = userService;
         }
 
         [HttpPost("Create")]
@@ -76,6 +80,9 @@ namespace Neuro.Api.Controllers.v1
                 };
                 await _unitOfWork.Repository<UserProgress>().InsertAsync(userProgress);
                 await _unitOfWork.SaveChangesAsync();
+                
+                await _userService.UpdateUserTargetAsync(userId, UserTargetTypeEnum.Article);
+
             }
             
             var article = await _unitOfWork.Repository<Article>()

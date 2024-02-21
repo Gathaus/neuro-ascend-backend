@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Neuro.Application.Managers.Abstract;
 using Neuro.Domain.Entities;
+using Neuro.Domain.Entities.Enums;
 using Neuro.Domain.UnitOfWork;
 
 namespace Neuro.Api.Controllers.v1;
@@ -10,10 +12,11 @@ namespace Neuro.Api.Controllers.v1;
 public class ActivityController : BaseController
 {
     private readonly IUnitOfWork _unitOfWork;
-
-    public ActivityController(IUnitOfWork unitOfWork)
+    private readonly IUserService _userService;
+    public ActivityController(IUnitOfWork unitOfWork, IUserService userService)
     {
         _unitOfWork = unitOfWork;
+        _userService = userService;
     }
 
     [HttpPost("Create")]
@@ -42,7 +45,8 @@ public class ActivityController : BaseController
             {
                 return NotFound();
             }
-            if(activity.ImagePath is null)
+
+            if (activity.ImagePath is null)
                 activity.ImagePath = "Neuro-ascend-mobil-mvp/images/photo.jpg";
 
             return Ok(activity);
@@ -66,9 +70,8 @@ public class ActivityController : BaseController
                 if (activity.ImagePath is null)
                     activity.ImagePath = "Neuro-ascend-mobil-mvp/images/photo.jpg";
             }
-            
-            return Ok(activities);
 
+            return Ok(activities);
         }
         catch (Exception e)
         {
@@ -76,40 +79,44 @@ public class ActivityController : BaseController
             return BadRequest(e.Message);
         }
     }
-    
+
     [HttpGet("GetUserNextActivity/{userId}")]
     public async Task<IActionResult> GetUserNextActivity(int userId)
     {
         try
         {
-                    var userProgress = await _unitOfWork.Repository<UserProgress>().FindBy(x=>x.UserId==userId).FirstOrDefaultAsync();
+            var userProgress = await _unitOfWork.Repository<UserProgress>().FindBy(x => x.UserId == userId)
+                .FirstOrDefaultAsync();
 
-                    if (userProgress == null)
-                    {
-                        userProgress = new UserProgress
-                        {
-                            UserId = userId,
-                            EveningLastFoodId = _unitOfWork.Repository<FoodPage>()
-                                .FindBy(x => x.Category.Equals("Main Course")).Min(x => x.Id),
-                            MorningLastFoodId = _unitOfWork.Repository<FoodPage>()
-                                .FindBy(x => x.Category.Equals("Breakfast")).Min(x => x.Id),
-                            LastExerciseId = _unitOfWork.Repository<Exercise>().FindBy().Min(x => x.Id),
-                            LastActivityId = _unitOfWork.Repository<Activity>().FindBy().Min(x => x.Id),
-                            LastArticleId = _unitOfWork.Repository<Article>().FindBy().Min(x => x.Id)
-                        };
+            if (userProgress == null)
+            {
+                userProgress = new UserProgress
+                {
+                    UserId = userId,
+                    EveningLastFoodId = _unitOfWork.Repository<FoodPage>()
+                        .FindBy(x => x.Category.Equals("Main Course")).Min(x => x.Id),
+                    MorningLastFoodId = _unitOfWork.Repository<FoodPage>()
+                        .FindBy(x => x.Category.Equals("Breakfast")).Min(x => x.Id),
+                    LastExerciseId = _unitOfWork.Repository<Exercise>().FindBy().Min(x => x.Id),
+                    LastActivityId = _unitOfWork.Repository<Activity>().FindBy().Min(x => x.Id),
+                    LastArticleId = _unitOfWork.Repository<Article>().FindBy().Min(x => x.Id)
+                };
 
-                        await _unitOfWork.Repository<UserProgress>().InsertAsync(userProgress);
-                        await _unitOfWork.SaveChangesAsync();
-                    }
+                await _unitOfWork.Repository<UserProgress>().InsertAsync(userProgress);
+                await _unitOfWork.SaveChangesAsync();
+
+                await _userService.UpdateUserTargetAsync(userId, UserTargetTypeEnum.Activity);
+            }
+
             var activity = await _unitOfWork.Repository<Activity>()
-                .FindBy(x=>x.Id > (userProgress.LastActivityId ?? 0))
-                .OrderBy(x=>x.Id)
+                .FindBy(x => x.Id > (userProgress.LastActivityId ?? 0))
+                .OrderBy(x => x.Id)
                 .FirstOrDefaultAsync();
             if (activity == null) return NotFound();
 
-            if(activity.ImagePath is null)
+            if (activity.ImagePath is null)
                 activity.ImagePath = "Neuro-ascend-mobil-mvp/images/photo.jpg";
-            
+
             return Ok(activity);
         }
         catch (Exception e)

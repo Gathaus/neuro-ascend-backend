@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Neuro.Application.Managers.Abstract;
 using Neuro.Domain.Entities;
+using Neuro.Domain.Entities.Enums;
 using Neuro.Domain.UnitOfWork;
 
 namespace Neuro.Api.Controllers.v1;
@@ -10,10 +12,13 @@ namespace Neuro.Api.Controllers.v1;
 public class ExerciseController : BaseController
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserService _userService;
+    
 
-    public ExerciseController(IUnitOfWork unitOfWork)
+    public ExerciseController(IUnitOfWork unitOfWork, IUserService userService)
     {
         _unitOfWork = unitOfWork;
+        _userService = userService;
     }
 
     [HttpPost("Create")]
@@ -117,6 +122,8 @@ public class ExerciseController : BaseController
 
                 await _unitOfWork.Repository<UserProgress>().InsertAsync(userProgress);
                 await _unitOfWork.SaveChangesAsync();
+                await _userService.UpdateUserTargetAsync(userId, UserTargetTypeEnum.Exercise);
+
             }
             var exercise = await _unitOfWork.Repository<Exercise>()
                 .FindBy(x => x.Id > (userProgress.LastExerciseId ?? 0))

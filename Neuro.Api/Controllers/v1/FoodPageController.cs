@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Neuro.Application.Managers.Abstract;
 using Neuro.Domain.Entities;
+using Neuro.Domain.Entities.Enums;
 using Neuro.Domain.UnitOfWork;
 
 namespace Neuro.Api.Controllers.v1;
@@ -10,10 +12,12 @@ namespace Neuro.Api.Controllers.v1;
 public class FoodPageController : BaseController
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserService _userService;
 
-    public FoodPageController(IUnitOfWork unitOfWork)
+    public FoodPageController(IUnitOfWork unitOfWork, IUserService userService)
     {
         _unitOfWork = unitOfWork;
+        _userService = userService;
     }
 
     [HttpPost("Create")]
@@ -77,6 +81,13 @@ public class FoodPageController : BaseController
 
             await _unitOfWork.Repository<UserProgress>().InsertAsync(userProgress);
             await _unitOfWork.SaveChangesAsync();
+            
+            if(isMorning)
+                await _userService.UpdateUserTargetAsync(userId, UserTargetTypeEnum.MorningFood);
+            else
+                await _userService.UpdateUserTargetAsync(userId, UserTargetTypeEnum.EveningFood);
+
+
         }
 
         var foodPageQuery = isMorning
