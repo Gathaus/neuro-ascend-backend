@@ -232,23 +232,27 @@ public class UserService : IUserService
 
     public async Task<bool> CalculateUserMedicineTargetForDay(int userId)
     {
-
         try
         {
             var userTarget = await CheckUserTarget(userId);
-  
             var utcNow = DateTime.UtcNow;
 
             var userMedicines = await _unitOfWork.Repository<UserMedicine>()
                 .FindBy(x => x.UserId == userId)
-                .Include(x => x.MedicationTimes.Where(x=>x.WeekDay == utcNow.DayOfWeek))
+                .Include(x => x.MedicationTimes) 
                 .ToListAsync();
 
-            var totalMedicineTarget = userMedicines.Sum(x => x.MedicationTimes.Count);
-            var totalMedicineTaken = userMedicines.Sum(x => x.MedicationTimes.Count(m => m.IsTaken));
+            var filteredMedicationTimes = userMedicines
+                .SelectMany(x => x.MedicationTimes)
+                .Where(y => y.WeekDay == utcNow.DayOfWeek)
+                .ToList();
+            
 
-            userTarget.MedicineTarget = (short) totalMedicineTarget;
-            userTarget.MedicineTaken = (short) totalMedicineTaken;
+            var totalMedicineTarget = filteredMedicationTimes.Count;
+            var totalMedicineTaken = filteredMedicationTimes.Count(m => m.IsTaken);
+
+            userTarget.MedicineTarget = (short)totalMedicineTarget;
+            userTarget.MedicineTaken = (short)totalMedicineTaken;
 
             _unitOfWork.Repository<UserTarget>().Update(userTarget);
             await _unitOfWork.SaveChangesAsync();
@@ -261,7 +265,6 @@ public class UserService : IUserService
             throw;
         }
     }
-    
     private async Task<UserTarget> CheckUserTarget(int userId)
     {
         var utcNow = DateTime.UtcNow;
