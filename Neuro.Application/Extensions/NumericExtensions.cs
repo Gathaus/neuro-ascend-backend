@@ -38,7 +38,7 @@ namespace Neuro.Application.Extensions
         /// </summary>
         /// <typeparam name="T">Numeric data type.</typeparam>
         /// <param name="value">The numeric value</param>
-        /// <returns>True if the value is null or below zero, False otherwise.</returns>
+        /// <returns>True if the vahue is null or below zero, False otherwise.</returns>
         public static bool IsNullOrBelowZero<T>(this T? value)
             where T : struct, IComparable<T>
         {
