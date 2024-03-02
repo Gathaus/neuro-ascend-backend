@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Neuro.Application.Base.BackgroundJobs;
+using Neuro.Application.Managers.Abstract;
 using Neuro.Application.Managers.Concrete;
 using Neuro.Domain.Entities;
 using Neuro.Domain.UnitOfWork;
@@ -12,10 +13,12 @@ public class MedicineReminderJob : IRecurringJob
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly NotificationManager _notificationManager;
+    private readonly IUserService _userService;
 
-    public MedicineReminderJob(IUnitOfWork unitOfWork, IConfiguration configuration)
+    public MedicineReminderJob(IUnitOfWork unitOfWork, IConfiguration configuration, IUserService userService)
     {
         _unitOfWork = unitOfWork;
+        _userService = userService;
         _notificationManager = new NotificationManager(configuration);
     }
 
@@ -24,6 +27,8 @@ public class MedicineReminderJob : IRecurringJob
         try
         {
             var utcNow = DateTime.UtcNow;
+            
+        
 
             // Haftanın ilk günü ve saat 00:00 kontrolü
             if (utcNow.DayOfWeek == DayOfWeek.Sunday && utcNow.Hour == 0)
@@ -52,6 +57,9 @@ public class MedicineReminderJob : IRecurringJob
             var groupedUserMedicines = userMedicines.GroupBy(um => um.User);
             foreach (var group in groupedUserMedicines)
             {
+                if(utcNow.Hour == 0)
+                    await _userService.CalculateUserMedicineTargetForDay(group.Key.Id);
+                        
                 var user = group.Key;
                 if (user?.TimeZone == null || user.FirebaseToken == null)
                     continue;

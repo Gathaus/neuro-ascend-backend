@@ -290,30 +290,46 @@ public class UserService : IUserService
 
     public async Task<bool> CalculateUserMedicineTargetForDay(int userId)
     {
-        var userTarget = await _unitOfWork.Repository<UserTarget>()
-            .FindBy(x => x.UserId == userId && x.CreatedDate.Date == DateTime.UtcNow.Date)
-            .SingleOrDefaultAsync();
 
-        if (userTarget == null){
-            var calculatedUserTargets = await CalculateUserTargetsAsync(userId);
-            if (calculatedUserTargets == null)
+        try
+        {
+            var userTarget = await _unitOfWork.Repository<UserTarget>()
+                .FindBy(x => x.UserId == userId && x.CreatedDate.Date == DateTime.UtcNow.Date)
+                .SingleOrDefaultAsync();
+
+            if (userTarget == null){
+                var calculatedUserTargets = await CalculateUserTargetsAsync(userId);
+                await _unitOfWork.SaveChangesAsync();
+
+            }
+            userTarget = await _unitOfWork.Repository<UserTarget>()
+                .FindBy(x => x.UserId == userId && x.CreatedDate.Date == DateTime.UtcNow.Date)
+                .SingleOrDefaultAsync();
+            if (userTarget == null)
                 return false;
+            
+            var utcNow = DateTime.UtcNow;
+
+            var userMedicines = await _unitOfWork.Repository<UserMedicine>()
+                .FindBy(x => x.UserId == userId)
+                .Include(x => x.MedicationTimes.Where(x=>x.WeekDay == utcNow.DayOfWeek))
+                .ToListAsync();
+
+            var totalMedicineTarget = userMedicines.Sum(x => x.MedicationTimes.Count);
+            var totalMedicineTaken = userMedicines.Sum(x => x.MedicationTimes.Count(m => m.IsTaken));
+
+            userTarget.MedicineTarget = (short) totalMedicineTarget;
+            userTarget.MedicineTaken = (short) totalMedicineTaken;
+
+            _unitOfWork.Repository<UserTarget>().Update(userTarget);
+            await _unitOfWork.SaveChangesAsync();
+
+            return true;
         }
-
-        var userMedicines = await _unitOfWork.Repository<UserMedicine>()
-            .FindBy(x => x.UserId == userId)
-            .Include(x => x.MedicationTimes)
-            .ToListAsync();
-
-        var totalMedicineTarget = userMedicines.Sum(x => x.MedicationTimes.Count);
-        var totalMedicineTaken = userMedicines.Sum(x => x.MedicationTimes.Count(m => m.IsTaken));
-
-        userTarget.MedicineTarget = (short) totalMedicineTarget;
-        userTarget.MedicineTaken = (short) totalMedicineTaken;
-
-        _unitOfWork.Repository<UserTarget>().Update(userTarget);
-        await _unitOfWork.SaveChangesAsync();
-
-        return true;
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }

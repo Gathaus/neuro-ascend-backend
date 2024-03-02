@@ -11,6 +11,8 @@ public interface IUserService
         Task<bool> UpdateUserTargetAsync(int userId, UserTargetTypeEnum targetType, short number = 1);
 
         Task<UserTargetsDto> CalculateUserTargetsAsync(int userId);
+        Task<bool> CalculateUserMedicineTargetForDay(int userId);
+
 
 
 }
