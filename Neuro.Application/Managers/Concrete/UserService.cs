@@ -25,7 +25,7 @@ public class UserService : IUserService
             .FindBy()
             .Where(x => x.UserId == userId)
             .Include(x => x.User)
-            .Include(x => x.MedicationTimes)
+            .Include(um => um.MedicationTimes.Where(mt => !mt.IsTaken))
             .Include(x => x.Medication)
             .ToListAsync();
 
