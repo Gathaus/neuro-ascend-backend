@@ -1,8 +1,5 @@
-using System.Globalization;
-using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Neuro.Application.Attributes;
 using Neuro.Application.Base.BackgroundJobs;
 using Neuro.Application.Managers.Concrete;
 using Neuro.Domain.Entities;
@@ -22,58 +19,70 @@ public class MedicineReminderJob : IRecurringJob
         _notificationManager = new NotificationManager(configuration);
     }
 
-    [Queue("critical")]
-    [RecurringJob("MedicineReminderJob.cs", "0 0 */1 * * *")]
     public async Task Execute()
     {
         try
         {
             var utcNow = DateTime.UtcNow;
-            
-            //TODO günün ilk saati ise kullanıcıya medicine target ata
-        
-            // Tüm UserMedicine nesnelerini al
+
+            // Haftanın ilk günü ve saat 00:00 kontrolü
+            if (utcNow.DayOfWeek == DayOfWeek.Sunday && utcNow.Hour == 0)
+            {
+                var medicationTimes = await _unitOfWork.Repository<MedicationTime>()
+                    .FindBy(mt => mt.IsTaken)
+                    .ToListAsync();
+
+                foreach (var medicationTime in medicationTimes)
+                {
+                    medicationTime.IsTaken = false;
+                }
+
+                await _unitOfWork.SaveChangesAsync(); // Değişiklikleri kaydet
+            }
+
+            // Kullanıcı ve ilaç bilgilerini içeren UserMedicine nesnelerini çek
             var userMedicines = await _unitOfWork.Repository<UserMedicine>()
                 .FindBy()
-                .Include(x => x.User)
-                .Include(x => x.MedicationTimes)
-                .Include(x => x.Medication)
+                .Include(um => um.User)
+                .Include(um => um.MedicationTimes.Where(mt => !mt.IsTaken))
+                .Include(um => um.Medication)
                 .ToListAsync();
-        
-            foreach (var userMedicine in userMedicines)
+
+            // Gruplanmış kullanıcılar üzerinde döngü kur
+            var groupedUserMedicines = userMedicines.GroupBy(um => um.User);
+            foreach (var group in groupedUserMedicines)
             {
-                if (userMedicine.User?.TimeZone == null || userMedicine.User.FirebaseToken == null)
+                var user = group.Key;
+                if (user?.TimeZone == null || user.FirebaseToken == null)
                     continue;
-                
-                // Kullanıcının yerel gününe göre ilaç günlerini filtrele
-                var medicationDays = userMedicine.MedicationTimes
-                    .Where(x => x.WeekDay == utcNow.DayOfWeek)
-                    .ToList();
-        
-                if (!medicationDays.Any())
-                    continue;
-        
-                var timeMatch = userMedicine.MedicationTimes.Any(time =>
-                    utcNow.Hour == time.Time.Hours);
-                
-                await BasicNeuroLogger.LogInfo("Sunucu zamanı: " + utcNow.ToString(CultureInfo.InvariantCulture) +
-                                               " Kullanıcı zamanı: " +
-                                               utcNow.ToString(CultureInfo.InvariantCulture) +
-                                               " Kullanıcı Timezone: " +
-                                               userMedicine.UserId);
-                
-                var medicationName = userMedicine.Medication.Name;
-                if (timeMatch)
-                    await _notificationManager.SendNotificationAsync(userMedicine.User.FirebaseToken,
-                        $"Hi {userMedicine.User.FirstName}!",
-                        $"It's time to take your {medicationName} medications.");
+
+                foreach (var userMedicine in group)
+                {
+                    var medicationDays = userMedicine.MedicationTimes
+                        .Where(mt => mt.WeekDay == utcNow.DayOfWeek)
+                        .ToList();
+
+                    if (!medicationDays.Any())
+                        continue;
+
+                    var timeMatch = medicationDays.Any(mt =>
+                        utcNow.Hour == mt.Time.Hours);
+
+                    if (timeMatch)
+                    {
+                        var medicationName = userMedicine.Medication.Name;
+                        await _notificationManager.SendNotificationAsync(user.FirebaseToken,
+                            $"Hello {user.FirstName}!",
+                            $"It's time to take your {medicationName} medication.");
+                    }
+                }
             }
         }
         catch (Exception e)
         {
+            // Hata kaydı
             await BasicNeuroLogger.LogError(e);
             throw;
         }
     }
-
 }
