@@ -154,90 +154,32 @@ public class UserService : IUserService
     {
         try
         {
-            var date = DateTime.UtcNow;
-            var userTarget = await _unitOfWork.Repository<UserTarget>()
-                .FindBy(x => x.UserId == userId
-                             && x.CreatedDate.Date == date.Date).FirstOrDefaultAsync();
+            var userTarget = await CheckUserTarget(userId);
 
-            if (userTarget == null)
+            switch (targetType)
             {
-                var lastUserTarget = await _unitOfWork.Repository<UserTarget>()
-                    .FindBy(x => x.UserId == userId)
-                    .OrderByDescending(x => x.Id)
-                    .FirstOrDefaultAsync();
-
-                int targetGroupId;
-                if (lastUserTarget != null)
-                {
-                    targetGroupId = lastUserTarget.TargetGroupId;
-                }
-                else
-                {
-                    // If user didn't have any target before, get the first target group id from the database
-                    //TODO targetgroup must be decided while registiring and save it to UserEntity
-                    targetGroupId = await _unitOfWork.Repository<TargetGroup>()
-                        .FindBy()
-                        .OrderBy(x => x.Id)
-                        .Select(x => x.Id)
-                        .FirstOrDefaultAsync();
-                }
-
-                var newUserTarget = new UserTarget
-                {
-                    UserId = userId,
-                    TargetGroupId = targetGroupId
-                };
-                switch (targetType)
-                {
-                    case UserTargetTypeEnum.Activity:
-                        newUserTarget.ActivityDone += number;
-                        break;
-                    case UserTargetTypeEnum.Exercise:
-                        newUserTarget.ExerciseDone += number;
-                        break;
-                    case UserTargetTypeEnum.Medicine:
-                        newUserTarget.MedicineTaken += number;
-                        break;
-                    case UserTargetTypeEnum.MorningFood:
-                        newUserTarget.MorningFoodTaken += number;
-                        break;
-                    case UserTargetTypeEnum.EveningFood:
-                        newUserTarget.EveningFoodTaken += number;
-                        break;
-                    case UserTargetTypeEnum.Article:
-                        newUserTarget.ArticleDone += number;
-                        break;
-                }
-
-                await _unitOfWork.SaveChangesAsync();
+                case UserTargetTypeEnum.Activity:
+                    userTarget.ActivityDone += number;
+                    break;
+                case UserTargetTypeEnum.Exercise:
+                    userTarget.ExerciseDone += number;
+                    break;
+                case UserTargetTypeEnum.Medicine:
+                    userTarget.MedicineTaken += number;
+                    break;
+                case UserTargetTypeEnum.MorningFood:
+                    userTarget.MorningFoodTaken += number;
+                    break;
+                case UserTargetTypeEnum.EveningFood:
+                    userTarget.EveningFoodTaken += number;
+                    break;
+                case UserTargetTypeEnum.Article:
+                    userTarget.ArticleDone += number;
+                    break;
             }
-            else
-            {
-                switch (targetType)
-                {
-                    case UserTargetTypeEnum.Activity:
-                        userTarget.ActivityDone += number;
-                        break;
-                    case UserTargetTypeEnum.Exercise:
-                        userTarget.ExerciseDone += number;
-                        break;
-                    case UserTargetTypeEnum.Medicine:
-                        userTarget.MedicineTaken += number;
-                        break;
-                    case UserTargetTypeEnum.MorningFood:
-                        userTarget.MorningFoodTaken += number;
-                        break;
-                    case UserTargetTypeEnum.EveningFood:
-                        userTarget.EveningFoodTaken += number;
-                        break;
-                    case UserTargetTypeEnum.Article:
-                        userTarget.ArticleDone += number;
-                        break;
-                }
 
-                _unitOfWork.Repository<UserTarget>().Update(userTarget);
-                await _unitOfWork.SaveChangesAsync();
-            }
+            _unitOfWork.Repository<UserTarget>().Update(userTarget);
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
         }
@@ -247,7 +189,7 @@ public class UserService : IUserService
             throw;
         }
     }
-
+    
     /// <summary>
     /// Calculate user targets daily
     /// </summary>
@@ -293,21 +235,8 @@ public class UserService : IUserService
 
         try
         {
-            var userTarget = await _unitOfWork.Repository<UserTarget>()
-                .FindBy(x => x.UserId == userId && x.CreatedDate.Date == DateTime.UtcNow.Date)
-                .SingleOrDefaultAsync();
-
-            if (userTarget == null){
-                var calculatedUserTargets = await CalculateUserTargetsAsync(userId);
-                await _unitOfWork.SaveChangesAsync();
-
-            }
-            userTarget = await _unitOfWork.Repository<UserTarget>()
-                .FindBy(x => x.UserId == userId && x.CreatedDate.Date == DateTime.UtcNow.Date)
-                .SingleOrDefaultAsync();
-            if (userTarget == null)
-                return false;
-            
+            var userTarget = await CheckUserTarget(userId);
+  
             var utcNow = DateTime.UtcNow;
 
             var userMedicines = await _unitOfWork.Repository<UserMedicine>()
@@ -331,5 +260,47 @@ public class UserService : IUserService
             Console.WriteLine(e);
             throw;
         }
+    }
+    
+    private async Task<UserTarget> CheckUserTarget(int userId)
+    {
+        var utcNow = DateTime.UtcNow;
+        var userTarget = await _unitOfWork.Repository<UserTarget>()
+            .FindBy(x => x.UserId == userId && x.CreatedDate.Date == utcNow.Date)
+            .FirstOrDefaultAsync();
+
+        if (userTarget == null)
+        {
+            var lastUserTarget = await _unitOfWork.Repository<UserTarget>()
+                .FindBy(x => x.UserId == userId)
+                .OrderByDescending(x => x.Id)
+                .FirstOrDefaultAsync();
+
+            int targetGroupId;
+            if (lastUserTarget != null)
+            {
+                targetGroupId = lastUserTarget.TargetGroupId;
+            }
+            else
+            {
+                targetGroupId = await _unitOfWork.Repository<TargetGroup>()
+                    .FindBy()
+                    .OrderBy(x => x.Id)
+                    .Select(x => x.Id)
+                    .FirstOrDefaultAsync();
+            }
+
+            userTarget = new UserTarget
+            {
+                UserId = userId,
+                TargetGroupId = targetGroupId,
+                CreatedDate = utcNow 
+            };
+
+            _unitOfWork.Repository<UserTarget>().Insert(userTarget);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        return userTarget;
     }
 }
