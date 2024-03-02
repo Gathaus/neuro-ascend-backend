@@ -12,6 +12,8 @@ public interface IUserService
 
         Task<UserTargetsDto> CalculateUserTargetsAsync(int userId);
         Task<bool> CalculateUserMedicineTargetForDay(int userId);
+        Task<MedicineCountsDto> CalculateMedicineAndForgottenCountsAsync(int userId);
+
 
 
 

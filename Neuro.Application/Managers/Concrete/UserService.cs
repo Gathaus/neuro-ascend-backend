@@ -190,11 +190,6 @@ public class UserService : IUserService
         }
     }
     
-    /// <summary>
-    /// Calculate user targets daily
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns></returns>
     public async Task<UserTargetsDto> CalculateUserTargetsAsync(int userId)
     {
         var userTarget = await _unitOfWork.Repository<UserTarget>()
@@ -219,10 +214,12 @@ public class UserService : IUserService
         var totalExerciseAndActivity = (userTarget.ExerciseDone + userTarget.ActivityDone) ?? Decimal.Zero;
         var totalExerciseAndActivityTarget = (targetGroup.ExerciseTarget + targetGroup.ActivityTarget) ?? Decimal.Zero;
 
+        var calculateMedicinesAndForgottens = await CalculateMedicineAndForgottenCountsAsync(userId);
+        var totalMedicinesTargetUntilNow = (decimal)(calculateMedicinesAndForgottens.MedicineCount + calculateMedicinesAndForgottens.ForgottenMedicineCount);
         var userTargetsDto = new UserTargetsDto
         {
             Medicine = NumericExtensions.Percentage(userTarget.MedicineTaken ?? Decimal.Zero,
-                userTarget.MedicineTarget ?? Decimal.Zero, 0, 100),
+                totalMedicinesTargetUntilNow, 0, 100),
             Food = NumericExtensions.Percentage(totalFoodTaken, totalFoodTarget,0,100),
             Exercise =  NumericExtensions.Percentage(totalExerciseAndActivity, totalExerciseAndActivityTarget,0,100)
         };
@@ -306,4 +303,42 @@ public class UserService : IUserService
 
         return userTarget;
     }
+    
+
+
+    public async Task<MedicineCountsDto> CalculateMedicineAndForgottenCountsAsync(int userId)
+    {
+        var utcNow = DateTime.UtcNow;
+        var result = new MedicineCountsDto();
+
+        var userMedicines = await _unitOfWork.Repository<UserMedicine>()
+            .FindBy(x => x.UserId == userId)
+            .Include(x => x.MedicationTimes)
+            .ToListAsync();
+
+        foreach (var userMedicine in userMedicines)
+        {
+            foreach (var medicinetime in userMedicine.MedicationTimes)
+            {
+                if (medicinetime.WeekDay != utcNow.DayOfWeek)
+                    continue;
+
+                var timeDifference = (medicinetime.Time - utcNow.TimeOfDay).TotalHours;
+
+                if (timeDifference >= 0 && timeDifference <= 1)
+                {
+                    // Gelecek 1 saat içinde alınması gereken ilaçlar
+                    result.MedicineCount++;
+                }
+                else if (timeDifference < 0)
+                {
+                    // Unutulan ilaçlar
+                    result.ForgottenMedicineCount++;
+                }
+            }
+        }
+
+        return result;
+    }
+
 }
