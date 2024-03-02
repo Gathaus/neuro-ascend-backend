@@ -143,6 +143,13 @@ public class UserService : IUserService
         return result;
     }
 
+    /// <summary>
+    ///   Update user target by target type
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="targetType"></param>
+    /// <param name="number"></param>
+    /// <returns></returns>
     public async Task<bool> UpdateUserTargetAsync(int userId, UserTargetTypeEnum targetType, short number = 1)
     {
         try
@@ -241,6 +248,11 @@ public class UserService : IUserService
         }
     }
 
+    /// <summary>
+    /// Calculate user targets daily
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
     public async Task<UserTargetsDto> CalculateUserTargetsAsync(int userId)
     {
         var userTarget = await _unitOfWork.Repository<UserTarget>()
@@ -274,5 +286,34 @@ public class UserService : IUserService
         };
 
         return userTargetsDto;
+    }
+
+    public async Task<bool> CalculateUserMedicineTargetForDay(int userId)
+    {
+        var userTarget = await _unitOfWork.Repository<UserTarget>()
+            .FindBy(x => x.UserId == userId && x.CreatedDate.Date == DateTime.UtcNow.Date)
+            .SingleOrDefaultAsync();
+
+        if (userTarget == null){
+            var calculatedUserTargets = await CalculateUserTargetsAsync(userId);
+            if (calculatedUserTargets == null)
+                return false;
+        }
+
+        var userMedicines = await _unitOfWork.Repository<UserMedicine>()
+            .FindBy(x => x.UserId == userId)
+            .Include(x => x.MedicationTimes)
+            .ToListAsync();
+
+        var totalMedicineTarget = userMedicines.Sum(x => x.MedicationTimes.Count);
+        var totalMedicineTaken = userMedicines.Sum(x => x.MedicationTimes.Count(m => m.IsTaken));
+
+        userTarget.MedicineTarget = (short) totalMedicineTarget;
+        userTarget.MedicineTaken = (short) totalMedicineTaken;
+
+        _unitOfWork.Repository<UserTarget>().Update(userTarget);
+        await _unitOfWork.SaveChangesAsync();
+
+        return true;
     }
 }
