@@ -123,13 +123,18 @@ public class AuthController : BaseController
         if (result > 0)
         {
             var userTargets = await _userService.CalculateUserTargetsAsync(user.Id);
-
+            var userMood = await _unitOfWork.Repository<UserMood>()
+                .FindBy(x => (x.Email.ToLower().Trim().Equals(user.Email.ToLower().Trim()))
+                             && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
             return Ok(new
             {
                 IsSuccess = true, Message = "Registration successful",
-                UserId = user.Id, Email = user.Email, User = user,
+                UserMood = userMood.FirstOrDefault()?.Mood.ToString() ?? "None",
+                UserId = user.Id, Email = user.Email,
+                User = user,
                 Medicines = medicinesInfo.Medicines,
                 NextMedicines = medicinesInfo.NextMedicines,
+                ForgottenMedicines = medicinesInfo.ForgottenMedicines,
                 UserTargets = userTargets
 
             });
