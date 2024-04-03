@@ -15,7 +15,7 @@ namespace Neuro.Application.Managers.Concrete
         {
             if (FirebaseApp.DefaultInstance == null)
             {
-                var firebaseConfig = configuration.GetSection("FireBase").Get<FireBaseConfig>(); // FireBaseConfig nesnesine dönüştür
+                var firebaseConfig = configuration.GetSection("GoogleCredentials").Get<GoogleServiceConfig>(); // FireBaseConfig nesnesine dönüştür
 
                 _firebaseApp = FirebaseApp.Create(new AppOptions
                 {

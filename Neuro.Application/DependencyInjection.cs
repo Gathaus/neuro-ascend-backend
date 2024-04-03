@@ -15,6 +15,7 @@ public static class DependencyInjection
         InjectDoubleFilterServices(services);
         InjectDoubleDynamicServices(services);
         services.AddSingleton<INotificationManager, NotificationManager>();
+        services.AddScoped<IFaceDetectionService, FaceDetectionService>();
 
 
         return services;

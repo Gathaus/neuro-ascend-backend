@@ -25,6 +25,13 @@ public class HomeController : BaseController
 
         return Redirect("/swagger/index.html");
     }
+
+    [HttpGet("Version")]
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public IActionResult GetVersion()
+    {
+        return Ok("1.0.0");
+    }
     [HttpGet("Environment")]
     [ApiExplorerSettings(IgnoreApi = true)]
     public IActionResult GetEnvironment()
