@@ -1,6 +1,6 @@
 namespace Neuro.Application.Managers.Concrete;
 
-public class FireBaseConfig
+public class GoogleServiceConfig
 {
     public string Type { get; set; }
     public string Project_id { get; set; }
