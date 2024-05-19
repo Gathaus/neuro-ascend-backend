@@ -36,6 +36,7 @@ namespace Neuro.Infrastructure.Ef.Contexts;
         public DbSet<MedicationTime> MedicationTimes { get; set; }
         public DbSet<UserTarget> UserTargets { get; set; }
         public DbSet<TargetGroup> TargetGroups { get; set; }
+        public DbSet<UserWaitlist> UserWaitlist { get; set; }
         #endregion
 
         #region Methods
