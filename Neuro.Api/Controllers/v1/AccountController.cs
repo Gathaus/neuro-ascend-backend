@@ -135,7 +135,6 @@ public class AccountController : ControllerBase
             // var user = await _unitOfWork.Repository<User>().FindBy(x => x.Email.Equals(payload.Email,
             //     StringComparison.OrdinalIgnoreCase)).FirstOrDefaultAsync();
 
-            
             var userEntity = await _unitOfWork.Repository<User>()
                 .FindBy(x => x.Email.ToLower().Trim().Equals(payload.Email.ToLower().Trim()))
                 .FirstOrDefaultAsync();
@@ -199,6 +198,62 @@ public class AccountController : ControllerBase
         return BadRequest("Invalid Google ID Token.");
     }
 
+    
+        [HttpPost("signin-googleTEST")]
+    public async Task<IActionResult> VerifyGoogleToken()
+    {
+            var userEntity = await _unitOfWork.Repository<User>()
+                .FindBy(x => x.Email.ToLower().Trim().Equals("rizamertyagci@gmail.com"))
+                .FirstOrDefaultAsync();
+            Check.EntityExists(userEntity, "User not found");
+            
+            var userDto = new UserDto()
+            {
+                Id = userEntity!.Id,
+                FirebaseToken = userEntity.FirebaseToken,
+                FirstName = userEntity.FirstName,
+                LastName = userEntity.LastName,
+                Email = userEntity.Email,
+                Age = userEntity.Age,
+                AlzheimerStage = userEntity.AlzheimerStage,
+                CountryCode = userEntity.CountryCode,
+                MobileNumber = userEntity.MobileNumber,
+                ImageUrl = userEntity.ImageUrl ?? "test/default-user.jpg",
+                TimeZone = userEntity.TimeZone,
+            };
+
+
+            if (userEntity != null)
+            {
+                
+
+              
+
+                var userMood = await _unitOfWork.Repository<UserMood>()
+                    .FindBy(x => (x.Email.ToLower().Trim().Equals("rizamertyagci@gmail.com"))
+                                 && x.CreatedAt.Date == DateTimeOffset.UtcNow.Date).ToListAsync();
+               var medicinesInfo = await _userService.GetUserMedicinesAsync(userEntity.Id);
+               var userTargets = await _userService.CalculateUserTargetsAsync(userDto.Id);
+
+                return Ok(new
+                {
+                    User = userDto,
+                    UserMood = userMood.FirstOrDefault()?.Mood.ToString() ?? "None",
+                    IsSuccess = true,
+                    Medicines = medicinesInfo.Medicines,
+                    NextMedicines = medicinesInfo.NextMedicines,
+                    ForgottenMedicines = medicinesInfo.ForgottenMedicines,
+                    UserTargets = userTargets
+                });
+            }
+
+            return BadRequest(new {IsSuccess = false, Message = "User Not Found"});
+
+
+        return BadRequest("Invalid Google ID Token.");
+    }
+
+    
     [HttpPost("signin-email")]
     public async Task<IActionResult> SignInWithEmail([FromBody] EmailModel model)
     {

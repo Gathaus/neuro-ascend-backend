@@ -13,6 +13,8 @@ namespace Neuro.Infrastructure.Ef.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            
+            migrationBuilder.Sql("DROP TABLE IF EXISTS \"UserProgresses\" CASCADE");
            
             migrationBuilder.CreateTable(
                 name: "UserProgresses",
@@ -63,7 +65,6 @@ namespace Neuro.Infrastructure.Ef.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-
             migrationBuilder.CreateIndex(
                 name: "IX_UserProgresses_EveningLastFoodId",
                 table: "UserProgresses",
@@ -101,7 +102,6 @@ namespace Neuro.Infrastructure.Ef.Migrations
             
             migrationBuilder.DropTable(
                 name: "UserProgresses");
-
         }
     }
 }

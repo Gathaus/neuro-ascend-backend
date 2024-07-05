@@ -6,7 +6,7 @@ namespace Neuro.Api.Managers
     public class StorageManager
     {
         private readonly IAmazonS3 _s3Client;
-        private const string BucketName = "neuro-ascend-blob-newstorage";
+        private const string BucketName = "nascend2";
 
 
         public StorageManager(string accessKey, string secretKey)
