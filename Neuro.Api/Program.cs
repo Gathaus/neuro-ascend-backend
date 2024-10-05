@@ -87,8 +87,8 @@ try
 
     builder.Services.AddScoped<StorageManager>(provider =>
     {
-        var accessKey = "DO007U98MQTMT2RLVHKE";
-        var secretKey = "YcMZvxYJFUUg9CX9JQhZksmM0isKsv6Z4k8mZYOeAag";
+        var accessKey = "DO00DGCPYZACATKEN7LR";
+        var secretKey = "P1LAWez69gvtX076M0w6+JT36Oe9t8wakQ6omkGpUyo";
         return new StorageManager(accessKey, secretKey);
     });
 
